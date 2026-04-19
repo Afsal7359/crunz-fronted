@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/currency';
+import { fixImageUrl } from '@/lib/api';
 
 export default function Products({ products = [], onOpenModal }) {
   const { currency } = useCart();
@@ -34,7 +35,7 @@ export default function Products({ products = [], onOpenModal }) {
           >
             <div className="prod-img-wrap" style={{ background: '#fafafa' }}>
               {product.badge && <div className="prod-badge">{product.badge}</div>}
-              <img src={product.image || '/images/spanish-tomato.jpg'} alt={product.name} loading="lazy" />
+              <img src={fixImageUrl(product.image) || '/images/spanish-tomato.jpg'} alt={product.name} loading="lazy" />
             </div>
             <div className="prod-body">
               <div className="prod-flavor">{product.flavor}</div>

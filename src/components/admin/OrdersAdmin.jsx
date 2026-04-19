@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
+import { api, fixImageUrl } from '@/lib/api';
 
 const STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
 const statusColors = {
@@ -66,7 +66,9 @@ export default function OrdersAdmin() {
                 {[
                   ['ID', `#${o._id.slice(-6).toUpperCase()}`],
                   ['Date', new Date(o.createdAt).toLocaleString('en-GB')],
+                  ['Source', o.orderSource === 'whatsapp' ? '💬 WhatsApp' : '🌐 Website'],
                   ['Currency', o.currency],
+                  ['Delivery', o.deliveryCharge > 0 ? `${sym}${Number(o.deliveryCharge).toFixed(2)}` : 'Free'],
                   ['Total', `${sym}${Number(total).toFixed(2)}`],
                   ['Payment', o.paymentStatus],
                   ['Stripe ID', o.stripePaymentIntentId || 'N/A'],
@@ -114,7 +116,7 @@ export default function OrdersAdmin() {
                 const unitPrice = o.currency === 'INR' ? item.priceINR : item.priceGBP;
                 return (
                   <tr key={i}>
-                    <td><img src={item.image || '/images/spanish-tomato.jpg'} alt={item.name} style={{ width: 40, height: 40, objectFit: 'contain', borderRadius: 5, background: '#fafafa', padding: 2 }} /></td>
+                    <td><img src={fixImageUrl(item.image) || '/images/spanish-tomato.jpg'} alt={item.name} style={{ width: 40, height: 40, objectFit: 'contain', borderRadius: 5, background: '#fafafa', padding: 2 }} /></td>
                     <td style={{ fontWeight: 600 }}>{item.name}</td>
                     <td>× {item.qty}</td>
                     <td>{sym}{Number(unitPrice).toFixed(2)}</td>
@@ -177,7 +179,10 @@ export default function OrdersAdmin() {
                     <td>{o.items?.length}</td>
                     <td style={{ fontWeight: 800 }}>{sym}{Number(total).toFixed(2)}</td>
                     <td><span className={`badge ${o.currency === 'INR' ? 'badge-purple' : 'badge-blue'}`}>{o.currency}</span></td>
-                    <td><span className={`badge ${o.paymentStatus === 'paid' ? 'badge-green' : 'badge-yellow'}`}>{o.paymentStatus}</span></td>
+                    <td>
+                      <div><span className={`badge ${o.paymentStatus === 'paid' ? 'badge-green' : 'badge-yellow'}`}>{o.paymentStatus}</span></div>
+                      {o.orderSource === 'whatsapp' && <span style={{ fontSize: '.65rem', opacity: .55 }}>💬 WhatsApp</span>}
+                    </td>
                     <td>
                       <select className="status-sel" value={o.status} onChange={e => updateStatus(o._id, e.target.value)}>
                         {STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}

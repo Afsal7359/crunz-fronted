@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/currency';
+import { fixImageUrl } from '@/lib/api';
 
 export default function ProductModal({ product, onClose }) {
   const [qty, setQty] = useState(1);
@@ -37,7 +38,7 @@ export default function ProductModal({ product, onClose }) {
       <div className="pm-box">
         <div className="pm-img">
           {product.badge && <div className="pm-badge-m">{product.badge}</div>}
-          <img src={product.image || '/images/spanish-tomato.jpg'} alt={product.name} />
+          <img src={fixImageUrl(product.image) || '/images/spanish-tomato.jpg'} alt={product.name} />
         </div>
         <div className="pm-detail">
           <div className="pm-close-row">

@@ -10,7 +10,7 @@ export default function Navbar({ content = {} }) {
   const { itemCount, setCartOpen } = useCart();
   const { user } = useAuth();
 
-  const announce = content.announce || 'Free delivery on orders over £25 · 100% Natural · Zero Preservatives';
+  const announce = content.announce || 'Free delivery on orders over £25 ·  · Zero Preservatives';
 
   return (
     <>

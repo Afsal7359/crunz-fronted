@@ -35,7 +35,7 @@ export default function HomePage() {
       <Contact products={products} content={content} onOpenModal={setSelectedProduct} />
       <Footer content={content} />
       <WaFloat wa={content.whatsapp} />
-      <Cart />
+      <Cart content={content} />
       <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
       <CheckoutModal content={content} />
     </>

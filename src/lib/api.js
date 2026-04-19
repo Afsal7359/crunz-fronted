@@ -46,3 +46,13 @@ export const api = {
 };
 
 export const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
+
+// Replaces any localhost image URL with the real backend URL.
+// Fixes images that were uploaded before BACKEND_URL env var was set.
+export function fixImageUrl(url) {
+  if (!url) return url;
+  if (!url.includes('localhost')) return url;
+  const real = (process.env.NEXT_PUBLIC_API_URL || '').replace('/api', '');
+  if (!real || real.includes('localhost')) return url;
+  return url.replace(/https?:\/\/localhost:\d+/, real);
+}

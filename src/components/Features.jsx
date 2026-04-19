@@ -2,7 +2,7 @@
 import { useEffect, useRef } from 'react';
 
 const features = [
-  { ico: '🌿', name: '100% Natural', txt: 'No preservatives, no artificial flavours. Pure, honest snacking exactly as nature intended.' },
+  // { ico: '🌿', name: '', txt: 'No preservatives, no artificial flavours. Pure, honest snacking exactly as nature intended.' },
   { ico: '🍌', name: 'Handpicked Bananas', txt: 'Sourced from the finest farms, processed with care for maximum freshness in every pack.' },
   { ico: '✦', name: 'Uniquely Thin & Crispy', txt: 'Our technique produces an even, light crunch that regular banana chips simply cannot match.' },
   { ico: '📦', name: 'Sealed for Freshness', txt: 'Every pack carefully sealed to lock in flavour and maintain that perfect crunch until you open it.' },
