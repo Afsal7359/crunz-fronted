@@ -1,13 +1,14 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar({ content = {} }) {
   const [mmOpen, setMmOpen] = useState(false);
   const { itemCount, setCartOpen } = useCart();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const announce = content.announce || 'Free delivery on orders over £25 · 100% Natural · Zero Preservatives';
 
@@ -21,7 +22,9 @@ export default function Navbar({ content = {} }) {
 
       <nav>
         <div className="nav-inner">
-          <Link href="/" className="logo">CRUNZ</Link>
+          <Link href="/" className="logo">
+            <Image src="/images/logo.png" alt="CRUNZ" width={160} height={40} priority />
+          </Link>
           <ul className="navlinks">
             <li><a href="#products">Shop</a></li>
             <li><a href="#spotlight">Flavours</a></li>
@@ -50,7 +53,6 @@ export default function Navbar({ content = {} }) {
         <a href="#reviews" onClick={() => setMmOpen(false)}>Reviews</a>
         <a href="#contact" onClick={() => setMmOpen(false)}>Contact</a>
         {user?.isAdmin && <Link href="/admin" onClick={() => setMmOpen(false)}>Admin Panel</Link>}
-        {user && <a href="#" onClick={() => { logout(); setMmOpen(false); }}>Sign Out</a>}
       </div>
     </>
   );

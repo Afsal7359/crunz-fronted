@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 
 export default function Hero({ content = {}, products = [] }) {
-  const eyebrow = content.hero_eyebrow || 'Premium Banana Chips · Preston, UK';
+  const eyebrow = content.hero_eyebrow || 'Premium Banana Chips';
   const title   = content.hero_title   || 'CRUNZ';
   const sub     = content.hero_sub     || 'Zero preservatives. Four bold flavours. The ultimate crunch in every bite.';
   const cta     = content.hero_cta     || 'Shop Now';

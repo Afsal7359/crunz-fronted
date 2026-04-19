@@ -7,6 +7,10 @@ export const metadata = {
   title: 'CRUNZ – Premium Banana Chips',
   description: 'Thinner, crispier, more flavourful. Handpicked bananas, zero preservatives, four extraordinary flavours crafted in the UK.',
   keywords: 'banana chips, crunz, premium snacks, uk, natural snacks',
+  icons: {
+    icon: '/images/logo.png',
+    apple: '/images/logo.png',
+  },
 };
 
 export default function RootLayout({ children }) {

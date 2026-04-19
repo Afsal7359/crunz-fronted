@@ -123,11 +123,51 @@
   background: #f4f4f4;
 }
 
-@media (max-width: 768px) {
-  .adm-sidebar { width: 200px; }
-  .adm-main { margin-left: 200px; }
+/* Mobile hamburger button — hidden on desktop */
+.adm-hbg {
+  display: none;
+  background: none !important;
+  border: 1px solid #e8e8e8 !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-size: 1.1rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
 }
-@media (max-width: 600px) {
-  .adm-sidebar { display: none; }
-  .adm-main { margin-left: 0; }
+
+/* Overlay backdrop */
+.adm-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  z-index: 99;
+}
+.adm-overlay.adm-overlay-on {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .adm-hbg { display: flex !important; }
+  .adm-sidebar {
+    left: -260px !important;
+    transition: left .25s cubic-bezier(.4,0,.2,1) !important;
+    width: 240px !important;
+    box-shadow: none !important;
+  }
+  .adm-sidebar.adm-open {
+    left: 0 !important;
+    box-shadow: 6px 0 24px rgba(0,0,0,.13) !important;
+  }
+  .adm-main {
+    margin-left: 0 !important;
+    padding: 20px 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .adm-main { padding: 16px 12px !important; }
 }

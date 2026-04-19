@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export default function Footer({ content = {} }) {
   const tagline = content.footer_tagline || 'Premium banana chips from Preston, UK. The ultimate crunch in every bite.';
   const ig = content.instagram || 'https://instagram.com/crunzofficial';
@@ -8,7 +10,7 @@ export default function Footer({ content = {} }) {
       <div className="foot-inner">
         <div className="foot-grid">
           <div>
-            <div className="f-brand">CRUNZ</div>
+            <Image src="/images/logo.png" alt="CRUNZ" width={130} height={44} style={{ objectFit: 'contain', height: 44, width: 'auto', marginBottom: 12 }} />
             <p className="f-tag">{tagline}</p>
             <div className="f-socs">
               <a href={ig} target="_blank" rel="noreferrer" className="f-soc">Instagram</a>

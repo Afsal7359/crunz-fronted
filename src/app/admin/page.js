@@ -73,7 +73,10 @@ function AdminLogin() {
 /* ── Main Panel ──────────────────────────────────────────── */
 export default function AdminPage() {
   const { user, loading, logout } = useAuth();
-  const [active, setActive] = useState('dashboard');
+  const [active, setActive]       = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const navigate = (key) => { setActive(key); setSidebarOpen(false); };
 
   if (loading) return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'100vh', background:'#111', fontFamily:'Inter,sans-serif' }}>
@@ -86,8 +89,11 @@ export default function AdminPage() {
   return (
     <div className="adm-layout">
 
+      {/* Overlay — closes sidebar on mobile tap-outside */}
+      <div className={`adm-overlay ${sidebarOpen ? 'adm-overlay-on' : ''}`} onClick={() => setSidebarOpen(false)} />
+
       {/* ── Sidebar ── */}
-      <aside className="adm-sidebar">
+      <aside className={`adm-sidebar ${sidebarOpen ? 'adm-open' : ''}`}>
         <div className="adm-logo-wrap">
           <span className="adm-logo-name">CRUNZ</span>
           <span className="adm-logo-sub">Admin Panel</span>
@@ -98,7 +104,7 @@ export default function AdminPage() {
             <button
               key={item.key}
               className={`adm-nav-btn ${active === item.key ? 'adm-active' : ''}`}
-              onClick={() => setActive(item.key)}
+              onClick={() => navigate(item.key)}
             >
               <span className="adm-nav-ico">{item.ico}</span>
               {item.label}
@@ -114,13 +120,17 @@ export default function AdminPage() {
 
       {/* ── Content ── */}
       <main className="adm-main">
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:28, paddingBottom:20, borderBottom:'1px solid #e0e0e0' }}>
-          <h1 style={{ fontSize:'1.6rem', fontWeight:900, letterSpacing:'-1px', color:'#0a0a0a', margin:0 }}>
-            {NAV.find(n => n.key === active)?.ico} {NAV.find(n => n.key === active)?.label}
-          </h1>
-          <div style={{ display:'flex', alignItems:'center', gap:8, background:'#fff', border:'1px solid #e8e8e8', borderRadius:8, padding:'8px 14px', fontSize:'.82rem', fontWeight:600 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:28, paddingBottom:20, borderBottom:'1px solid #e0e0e0', gap:12 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            {/* Hamburger — visible on mobile only */}
+            <button className="adm-hbg" onClick={() => setSidebarOpen(o => !o)} aria-label="Menu">☰</button>
+            <h1 style={{ fontSize:'1.4rem', fontWeight:900, letterSpacing:'-1px', color:'#0a0a0a', margin:0 }}>
+              {NAV.find(n => n.key === active)?.ico} {NAV.find(n => n.key === active)?.label}
+            </h1>
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:8, background:'#fff', border:'1px solid #e8e8e8', borderRadius:8, padding:'8px 14px', fontSize:'.82rem', fontWeight:600, flexShrink:0 }}>
             <span>👤</span>
-            <span>{user.name}</span>
+            <span style={{ maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{user.name}</span>
             <span style={{ opacity:.3 }}>·</span>
             <span style={{ color:'#16a34a', fontWeight:700, fontSize:'.75rem' }}>Admin</span>
           </div>
