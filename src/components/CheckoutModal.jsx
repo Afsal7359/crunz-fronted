@@ -19,7 +19,7 @@ function getDelivery(total, currency, content) {
 }
 
 // ── Stripe inner form ────────────────────────────────────────────────
-function StripeForm({ grandTotal, currency, clientSecret, orderPayload, onSuccess }) {
+function StripeForm({ grandTotal, currency, clientSecret, orderId, paymentIntentId, onSuccess }) {
   const stripe = useStripe();
   const elements = useElements();
   const { clearCart } = useCart();
@@ -33,15 +33,19 @@ function StripeForm({ grandTotal, currency, clientSecret, orderPayload, onSucces
       const { error: submitErr } = await elements.submit();
       if (submitErr) { setErr(submitErr.message); setLoading(false); return; }
 
-      const { error: confirmErr } = await stripe.confirmPayment({
+      const { error: confirmErr, paymentIntent: pi } = await stripe.confirmPayment({
         elements,
         clientSecret,
         redirect: 'if_required',
       });
       if (confirmErr) { setErr(confirmErr.message); setLoading(false); return; }
 
-      // Save order
-      await api.post('/orders/guest', { ...orderPayload, paymentStatus: 'paid', orderSource: 'website' });
+      // Immediately confirm with backend — marks order paid without needing webhook
+      await api.post('/payment/confirm-order', {
+        paymentIntentId: pi?.id || paymentIntentId,
+        orderId,
+      });
+
       clearCart();
       onSuccess();
     } catch (e) {
@@ -70,14 +74,15 @@ export default function CheckoutModal({ content = {} }) {
   const [err, setErr]   = useState('');
   const [done, setDone] = useState(false);
   const [clientSecret, setClientSecret] = useState(null);
-  const [orderPayload, setOrderPayload] = useState(null);
+  const [orderId, setOrderId] = useState(null);
+  const [paymentIntentId, setPaymentIntentId] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
 
   const close = () => {
     setCheckoutOpen(false);
-    setTimeout(() => { setDone(false); setErr(''); setClientSecret(null); setOrderPayload(null); }, 400);
+    setTimeout(() => { setDone(false); setErr(''); setClientSecret(null); setOrderId(null); setPaymentIntentId(null); }, 400);
   };
 
   const validate = () => {
@@ -95,19 +100,23 @@ export default function CheckoutModal({ content = {} }) {
       const totalGBP = cart.reduce((s, i) => s + i.priceGBP * i.qty, 0) + (currency === 'GBP' ? charge : 0);
       const totalINR = cart.reduce((s, i) => s + i.priceINR * i.qty, 0) + (currency === 'INR' ? charge : 0);
 
-      const { clientSecret: cs } = await api.post('/payment/create-intent', {
-        amountGBP: totalGBP,
-        amountINR: totalINR,
-        currency,
-      });
-
-      setClientSecret(cs);
-      setOrderPayload({
+      const orderData = {
         items: cart.map(i => ({ product: i._id, name: i.name, image: i.image, priceGBP: i.priceGBP, priceINR: i.priceINR, qty: i.qty })),
         shippingAddress: { name: form.name, phone: form.phone, street: form.street, city: form.city, postcode: form.postcode, country: form.country },
         currency, deliveryCharge: charge, notes: form.notes,
         totalGBP, totalINR,
+      };
+
+      const { clientSecret: cs, orderId: oid, paymentIntentId: pid } = await api.post('/payment/create-intent', {
+        amountGBP: totalGBP,
+        amountINR: totalINR,
+        currency,
+        orderData,
       });
+
+      setClientSecret(cs);
+      setOrderId(oid);
+      setPaymentIntentId(pid);
     } catch (e) {
       setErr(e.message || 'Could not initiate payment. Please try again.');
     } finally { setLoading(false); }
@@ -168,7 +177,8 @@ export default function CheckoutModal({ content = {} }) {
                   grandTotal={grandTotal}
                   currency={currency}
                   clientSecret={clientSecret}
-                  orderPayload={orderPayload}
+                  orderId={orderId}
+                  paymentIntentId={paymentIntentId}
                   onSuccess={() => setDone(true)}
                 />
               </Elements>
