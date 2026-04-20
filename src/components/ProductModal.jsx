@@ -53,7 +53,6 @@ export default function ProductModal({ product, onClose }) {
           <hr className="pm-divider" />
           <div className="pm-prices">
             <div className="pm-price-main">{mainPrice}</div>
-            <div className="pm-price-alt">Also available at {altPrice} / pack</div>
           </div>
           <div className="pm-qty-row">
             <div className="pm-qty-lbl">Quantity</div>

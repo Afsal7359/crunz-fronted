@@ -18,16 +18,30 @@ export default function HomePage() {
   const [products, setProducts] = useState([]);
   const [content, setContent] = useState({});
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [heroLoaded, setHeroLoaded] = useState(false);
+  const [showLoader, setShowLoader] = useState(true);
 
   useEffect(() => {
-    api.get('/products').then(setProducts).catch(console.error);
-    api.get('/content').then(setContent).catch(() => {});
+    Promise.all([
+      api.get('/products').then(setProducts).catch(console.error),
+      api.get('/content').then(setContent).catch(() => {}),
+    ]).finally(() => {
+      setHeroLoaded(true);
+      // fade-out then unmount
+      setTimeout(() => setShowLoader(false), 480);
+    });
   }, []);
 
   return (
     <>
+      {showLoader && (
+        <div className={`app-loading ${heroLoaded ? 'fade-out' : ''}`}>
+          <img src="/images/logo.png" alt="Crunz" className="app-loading-logo" />
+          <div className="app-loading-bar"><div className="app-loading-fill" /></div>
+        </div>
+      )}
       <Navbar content={content} />
-      <Hero content={content} products={products} />
+      <Hero content={content} products={products} loaded={heroLoaded} />
       <MarqueeBar />
       <Products products={products} onOpenModal={setSelectedProduct} />
       <Features />

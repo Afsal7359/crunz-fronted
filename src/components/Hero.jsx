@@ -48,7 +48,7 @@ function Carousel({ slides, eyebrow, title, cta }) {
                 {slide.text}
               </div>
             ) : (
-              <img src={slide.src} alt={slide.label || 'Crunz'} />
+              <img src={slide.src} alt={slide.label || 'Crunz'} fetchpriority={i === 1 ? 'high' : 'low'} />
             )}
           </div>
         ))}
@@ -80,7 +80,7 @@ function Carousel({ slides, eyebrow, title, cta }) {
 }
 
 // ── Main Hero ───────────────────────────────────────────────────────
-export default function Hero({ content = {}, products = [] }) {
+export default function Hero({ content = {}, products = [], loaded = false }) {
   const eyebrow = content.hero_eyebrow || 'Premium Banana Chips · Preston, UK';
   const title   = content.hero_title   || 'CRUNZ';
   const cta     = content.hero_cta     || 'Shop Now';
@@ -88,21 +88,27 @@ export default function Hero({ content = {}, products = [] }) {
   // Banner slides: admin-defined or fall back to product images
   let slides = [];
   try { slides = content.hero_slides ? JSON.parse(content.hero_slides) : []; } catch {}
-  if (!slides.length) {
-    slides = products.length
-      ? products.map(p => ({ type: 'image', src: p.image || '/images/spanish-tomato.jpg', label: p.name }))
-      : [
-          { type: 'image', src: '/images/spanish-tomato.jpg',  label: 'Spanish Tomato' },
-          { type: 'image', src: '/images/peri-peri.jpg',       label: 'Peri Peri Magic' },
-          { type: 'image', src: '/images/sour-onion.jpg',      label: 'Sour & Onion' },
-          { type: 'image', src: '/images/classic-normal.jpg',  label: 'Classic Normal' },
-        ];
+  if (!slides.length && products.length) {
+    slides = products.map(p => ({ type: 'image', src: p.image || '', label: p.name }));
   }
+
+  // Preload all slide images as soon as URLs are known
+  useEffect(() => {
+    slides.forEach(s => {
+      if (s.type !== 'text' && s.src) {
+        const img = new window.Image();
+        img.src = s.src;
+      }
+    });
+  }, [slides.map(s => s.src).join(',')]);
 
   return (
     <section className="hero">
       <div className="hero-banner">
-        <Carousel slides={slides} eyebrow={eyebrow} title={title} cta={cta} />
+        {!loaded || !slides.length
+          ? <div className="hero-skel" />
+          : <Carousel slides={slides} eyebrow={eyebrow} title={title} cta={cta} />
+        }
       </div>
     </section>
   );
