@@ -1,10 +1,12 @@
 'use client';
 import { useState } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useCart } from '@/context/CartContext';
 import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/currency';
 
-const WA_NUMBER = '447741940700';
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 function getDelivery(total, currency, content) {
   const threshold = parseFloat(
@@ -13,10 +15,52 @@ function getDelivery(total, currency, content) {
   const charge = parseFloat(
     currency === 'INR' ? content.delivery_charge_inr : content.delivery_charge_gbp
   ) || (currency === 'INR' ? 99 : 3.99);
-  const isFree = total >= threshold;
-  return { charge: isFree ? 0 : charge, threshold, isFree };
+  return { charge: total >= threshold ? 0 : charge, isFree: total >= threshold };
 }
 
+// ── Stripe inner form ────────────────────────────────────────────────
+function StripeForm({ grandTotal, currency, clientSecret, orderPayload, onSuccess }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const { clearCart } = useCart();
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState('');
+
+  const handlePay = async () => {
+    if (!stripe || !elements) return;
+    setLoading(true); setErr('');
+    try {
+      const { error: submitErr } = await elements.submit();
+      if (submitErr) { setErr(submitErr.message); setLoading(false); return; }
+
+      const { error: confirmErr } = await stripe.confirmPayment({
+        elements,
+        clientSecret,
+        redirect: 'if_required',
+      });
+      if (confirmErr) { setErr(confirmErr.message); setLoading(false); return; }
+
+      // Save order
+      await api.post('/orders/guest', { ...orderPayload, paymentStatus: 'paid', orderSource: 'website' });
+      clearCart();
+      onSuccess();
+    } catch (e) {
+      setErr(e.message || 'Payment failed. Please try again.');
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div>
+      <PaymentElement options={{ layout: 'tabs' }} />
+      {err && <div className="form-err" style={{ marginTop: 10 }}>{err}</div>}
+      <button className="sub-btn" onClick={handlePay} disabled={loading || !stripe} style={{ marginTop: 16 }}>
+        {loading ? 'Processing...' : `Pay ${formatPrice(grandTotal, currency)}`}
+      </button>
+    </div>
+  );
+}
+
+// ── Main checkout modal ──────────────────────────────────────────────
 export default function CheckoutModal({ content = {} }) {
   const { checkoutOpen, setCheckoutOpen, cart, currency, total, clearCart } = useCart();
   const { charge, isFree } = getDelivery(total, currency, content);
@@ -25,59 +69,48 @@ export default function CheckoutModal({ content = {} }) {
   const [form, setForm] = useState({ name: '', phone: '', street: '', city: '', postcode: '', country: 'United Kingdom', notes: '' });
   const [err, setErr]   = useState('');
   const [done, setDone] = useState(false);
+  const [clientSecret, setClientSecret] = useState(null);
+  const [orderPayload, setOrderPayload] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
 
   const close = () => {
     setCheckoutOpen(false);
-    setTimeout(() => { setDone(false); setErr(''); }, 400);
+    setTimeout(() => { setDone(false); setErr(''); setClientSecret(null); setOrderPayload(null); }, 400);
   };
 
-  const handleWhatsApp = () => {
-    if (!form.name.trim())     { setErr('Please enter your name'); return; }
-    if (!form.phone.trim())    { setErr('Please enter your phone number'); return; }
-    if (!form.street.trim())   { setErr('Please enter your street address'); return; }
-    if (!form.postcode.trim()) { setErr('Please enter your postcode'); return; }
-    setErr('');
+  const validate = () => {
+    if (!form.name.trim())     { setErr('Please enter your name'); return false; }
+    if (!form.phone.trim())    { setErr('Please enter your phone number'); return false; }
+    if (!form.street.trim())   { setErr('Please enter your street address'); return false; }
+    if (!form.postcode.trim()) { setErr('Please enter your postcode'); return false; }
+    setErr(''); return true;
+  };
 
-    const itemLines = cart.map(i => {
-      const price = currency === 'INR' ? i.priceINR : i.priceGBP;
-      return `• ${i.name} × ${i.qty} = ${formatPrice(price * i.qty, currency)}`;
-    }).join('\n');
+  const handleProceed = async () => {
+    if (!validate()) return;
+    setLoading(true); setErr('');
+    try {
+      const totalGBP = cart.reduce((s, i) => s + i.priceGBP * i.qty, 0) + (currency === 'GBP' ? charge : 0);
+      const totalINR = cart.reduce((s, i) => s + i.priceINR * i.qty, 0) + (currency === 'INR' ? charge : 0);
 
-    const address = [form.street, form.city, form.postcode, form.country].filter(Boolean).join(', ');
+      const { clientSecret: cs } = await api.post('/payment/create-intent', {
+        amountGBP: totalGBP,
+        amountINR: totalINR,
+        currency,
+      });
 
-    const msg = [
-      '🍌 *New Order — CRUNZ*',
-      '',
-      '*Order Items:*',
-      itemLines,
-      '',
-      `Subtotal: ${formatPrice(total, currency)}`,
-      `Delivery: ${isFree ? 'FREE' : formatPrice(charge, currency)}`,
-      `*Total: ${formatPrice(grandTotal, currency)}*`,
-      '',
-      '*Delivery Details:*',
-      `Name: ${form.name}`,
-      `Phone: ${form.phone}`,
-      `Address: ${address}`,
-      form.notes ? `Notes: ${form.notes}` : null,
-    ].filter(l => l !== null).join('\n');
-
-    // Save order to DB (non-blocking — don't delay WhatsApp redirect)
-    const orderPayload = {
-      items: cart.map(i => ({ product: i._id, name: i.name, image: i.image, priceGBP: i.priceGBP, priceINR: i.priceINR, qty: i.qty })),
-      shippingAddress: { name: form.name, phone: form.phone, street: form.street, city: form.city, postcode: form.postcode, country: form.country },
-      currency,
-      deliveryCharge: charge,
-      notes: form.notes,
-    };
-    api.post('/orders/guest', orderPayload).catch(() => {}); // silent — don't block UX
-
-    const waNum = (content.whatsapp || WA_NUMBER).replace(/\D/g, '');
-    window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`, '_blank');
-    clearCart();
-    setDone(true);
+      setClientSecret(cs);
+      setOrderPayload({
+        items: cart.map(i => ({ product: i._id, name: i.name, image: i.image, priceGBP: i.priceGBP, priceINR: i.priceINR, qty: i.qty })),
+        shippingAddress: { name: form.name, phone: form.phone, street: form.street, city: form.city, postcode: form.postcode, country: form.country },
+        currency, deliveryCharge: charge, notes: form.notes,
+        totalGBP, totalINR,
+      });
+    } catch (e) {
+      setErr(e.message || 'Could not initiate payment. Please try again.');
+    } finally { setLoading(false); }
   };
 
   if (!checkoutOpen) return null;
@@ -87,8 +120,10 @@ export default function CheckoutModal({ content = {} }) {
       <div className="co-box">
         <div className="co-hd">
           <div>
-            <div className="co-step-label">{done ? '' : 'Delivery Details'}</div>
-            <div className="co-title">{done ? 'Order Sent!' : 'Place Your Order'}</div>
+            <div className="co-step-label">{done ? '' : clientSecret ? 'Step 2 of 2' : 'Step 1 of 2'}</div>
+            <div className="co-title">
+              {done ? 'Order Confirmed!' : clientSecret ? 'Complete Payment' : 'Delivery Details'}
+            </div>
           </div>
           <button className="co-close" onClick={close}>✕</button>
         </div>
@@ -97,12 +132,50 @@ export default function CheckoutModal({ content = {} }) {
           {done ? (
             <div className="success-box">
               <div className="success-ico">🎉</div>
-              <div className="success-ttl">Order Sent via WhatsApp!</div>
-              <p className="success-sub">We'll confirm your order and arrange delivery shortly.</p>
+              <div className="success-ttl">Payment Successful!</div>
+              <p className="success-sub">Your order is confirmed. Check your email for details.</p>
               <button className="sub-btn" style={{ marginTop: 24 }} onClick={close}>Continue Shopping</button>
             </div>
+
+          ) : clientSecret ? (
+            <>
+              <button className="am-resend" style={{ marginBottom: 16 }}
+                onClick={() => { setClientSecret(null); setOrderPayload(null); }}>
+                ← Back to delivery details
+              </button>
+              {/* Compact order summary */}
+              <div className="co-summary-compact">
+                {cart.map(item => {
+                  const price = currency === 'INR' ? item.priceINR : item.priceGBP;
+                  return (
+                    <div key={item._id} className="co-summary-row">
+                      <span>{item.name} <span style={{ opacity: .4 }}>× {item.qty}</span></span>
+                      <span>{formatPrice(price * item.qty, currency)}</span>
+                    </div>
+                  );
+                })}
+                <div className="co-summary-row" style={{ opacity: .55, fontSize: '.8rem' }}>
+                  <span>Delivery</span>
+                  <span>{isFree ? 'FREE' : formatPrice(charge, currency)}</span>
+                </div>
+                <div className="co-summary-row co-summary-total">
+                  <span>Total</span>
+                  <span>{formatPrice(grandTotal, currency)}</span>
+                </div>
+              </div>
+              <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
+                <StripeForm
+                  grandTotal={grandTotal}
+                  currency={currency}
+                  clientSecret={clientSecret}
+                  orderPayload={orderPayload}
+                  onSuccess={() => setDone(true)}
+                />
+              </Elements>
+            </>
+
           ) : (
-            <div>
+            <>
               {/* Order summary */}
               <div style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 10, padding: '14px 16px', marginBottom: 20 }}>
                 <div style={{ fontSize: '.65rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', opacity: .35, marginBottom: 10 }}>Your Order</div>
@@ -129,7 +202,7 @@ export default function CheckoutModal({ content = {} }) {
                 </div>
               </div>
 
-              {/* Form */}
+              {/* Address form */}
               <div className="fr">
                 <div className="fg">
                   <label className="fl">Full Name *</label>
@@ -165,18 +238,14 @@ export default function CheckoutModal({ content = {} }) {
 
               {err && <div className="form-err">{err}</div>}
 
-              <button className="sub-btn" onClick={handleWhatsApp} disabled={cart.length === 0}
-                style={{ marginTop: 8, background: '#25D366', borderColor: '#25D366', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-                <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
-                  <path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.67 4.61 1.832 6.5L4 29l7.7-1.8A12.94 12.94 0 0016 28c6.627 0 12-5.373 12-12S22.627 3 16 3z" fill="#fff"/>
-                  <path d="M21.5 18.5c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.27-.47-2.42-1.5-.9-.8-1.5-1.78-1.67-2.08-.18-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51H11.6c-.2 0-.52.07-.79.37-.27.3-1.03 1.01-1.03 2.46s1.06 2.86 1.2 3.06c.15.2 2.08 3.17 5.04 4.45.7.3 1.25.48 1.68.62.7.22 1.34.19 1.84.11.56-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.08-.12-.27-.2-.57-.35z" fill="#25D366"/>
+              <button className="sub-btn" onClick={handleProceed} disabled={cart.length === 0 || loading} style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <rect x="1" y="4" width="22" height="16" rx="3" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M1 10h22" stroke="currentColor" strokeWidth="2"/>
                 </svg>
-                Order via WhatsApp · {formatPrice(grandTotal, currency)}
+                {loading ? 'Loading...' : `Continue to Payment · ${formatPrice(grandTotal, currency)}`}
               </button>
-              <p style={{ fontSize: '.72rem', opacity: .4, textAlign: 'center', marginTop: 10 }}>
-                Your order details will be sent to our WhatsApp. We'll confirm and arrange delivery.
-              </p>
-            </div>
+            </>
           )}
         </div>
       </div>

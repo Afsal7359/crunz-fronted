@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 
-export default function Navbar({ content = {} }) {
+export default function Navbar({ content = {}, onOpenAuth, onOpenProfile }) {
   const [mmOpen, setMmOpen] = useState(false);
   const { itemCount, setCartOpen } = useCart();
   const { user } = useAuth();
@@ -34,6 +34,14 @@ export default function Navbar({ content = {} }) {
             {user?.isAdmin && <li><Link href="/admin" style={{ opacity: 1, color: '#16a34a', fontWeight: 700 }}>Admin</Link></li>}
           </ul>
           <div className="nav-right">
+            {user ? (
+              <div className="nav-user">
+                <button className="nav-user-name" onClick={() => onOpenProfile?.()}>{user.name.split(' ')[0]}</button>
+                {user.isAdmin && <Link href="/admin" className="nav-admin-badge">Admin</Link>}
+              </div>
+            ) : (
+              <button className="nav-login-btn" onClick={() => onOpenAuth?.()}>Sign In</button>
+            )}
             <button className="cart-btn" onClick={() => setCartOpen(true)}>
               Cart <span className="cc">{itemCount}</span>
             </button>

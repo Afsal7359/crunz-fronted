@@ -12,6 +12,8 @@ import WaFloat from '@/components/WaFloat';
 import Cart from '@/components/Cart';
 import ProductModal from '@/components/ProductModal';
 import CheckoutModal from '@/components/CheckoutModal';
+import AuthModal from '@/components/AuthModal';
+import ProfileModal from '@/components/ProfileModal';
 import { api } from '@/lib/api';
 
 export default function HomePage() {
@@ -20,6 +22,8 @@ export default function HomePage() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [heroLoaded, setHeroLoaded] = useState(false);
   const [showLoader, setShowLoader] = useState(true);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -27,7 +31,6 @@ export default function HomePage() {
       api.get('/content').then(setContent).catch(() => {}),
     ]).finally(() => {
       setHeroLoaded(true);
-      // fade-out then unmount
       setTimeout(() => setShowLoader(false), 480);
     });
   }, []);
@@ -40,7 +43,7 @@ export default function HomePage() {
           <div className="app-loading-bar"><div className="app-loading-fill" /></div>
         </div>
       )}
-      <Navbar content={content} />
+      <Navbar content={content} onOpenAuth={() => setAuthOpen(true)} onOpenProfile={() => setProfileOpen(true)} />
       <Hero content={content} products={products} loaded={heroLoaded} />
       <MarqueeBar />
       <Products products={products} onOpenModal={setSelectedProduct} />
@@ -52,6 +55,8 @@ export default function HomePage() {
       <Cart content={content} />
       <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
       <CheckoutModal content={content} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
     </>
   );
 }
