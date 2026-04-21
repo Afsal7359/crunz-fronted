@@ -1,9 +1,9 @@
 export default function MarqueeBar() {
   const items = [
     'Spanish Tomato', 'Peri Peri Magic', 'Sour & Onion Cream', 'Classic Normal',
-    '', 'Zero Preservatives', 'Handpicked Bananas', 'Made in UK',
+    '', 'Handpicked Bananas', 'Made in India',
     'Spanish Tomato', 'Peri Peri Magic', 'Sour & Onion Cream', 'Classic Normal',
-    '', 'Zero Preservatives', 'Handpicked Bananas', 'Made in UK',
+    '', 'Handpicked Bananas', 'Made in India',
   ];
   return (
     <div className="marquee">

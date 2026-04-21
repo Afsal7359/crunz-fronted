@@ -50,7 +50,7 @@ export default function ProfileModal({ open, onClose }) {
         {/* Stats row */}
         <div className="pm2-stats">
           <div className="pm2-stat">
-            <div className="pm2-stat-val">{orders.length}</div>
+            <div className="pm2-stat-val">{orders.filter(o => o.paymentStatus === 'paid').length}</div>
             <div className="pm2-stat-lbl">Orders</div>
           </div>
           <div className="pm2-stat">

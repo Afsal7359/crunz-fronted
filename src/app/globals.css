@@ -456,6 +456,11 @@ footer { padding: 56px 5% 28px; border-top: 1px solid #f0f0f0; }
 .pm2-logout { width: 100%; background: none; border: 1px solid #e8e8e8; font-family: 'Inter', sans-serif; font-weight: 700; font-size: .82rem; padding: 11px; border-radius: 7px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; color: #dc2626; border-color: #fecaca; transition: background .2s; }
 .pm2-logout:hover { background: #fef2f2; }
 
+/* CURRENCY TOGGLE */
+.c-cur-toggle { display: flex; border: 1px solid #e8e8e8; border-radius: 6px; overflow: hidden; }
+.c-cur-toggle button { background: none; border: none; font-family: 'Inter', sans-serif; font-size: .72rem; font-weight: 700; padding: 5px 10px; cursor: pointer; color: #0a0a0a; opacity: .4; transition: all .15s; }
+.c-cur-toggle button.active { background: #0a0a0a; color: #fff; opacity: 1; }
+
 /* REVEAL ANIMATION */
 .rv { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s ease; }
 .rv.vis { opacity: 1; transform: translateY(0); }

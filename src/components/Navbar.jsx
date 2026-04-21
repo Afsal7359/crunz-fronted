@@ -12,7 +12,7 @@ export default function Navbar({ content = {}, onOpenAuth, onOpenProfile }) {
   const { itemCount, setCartOpen } = useCart();
   const { user, logout } = useAuth();
 
-  const announce = content.announce || 'Free delivery on orders over £25 · Zero Preservatives';
+  const announce = content.announce || 'Free delivery on orders over £25 · ';
 
   // Close dropdown on outside click
   useEffect(() => {

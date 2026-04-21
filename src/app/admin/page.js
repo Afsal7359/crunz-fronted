@@ -8,13 +8,15 @@ import ProductsAdmin from '@/components/admin/ProductsAdmin';
 import OrdersAdmin from '@/components/admin/OrdersAdmin';
 import ContentAdmin from '@/components/admin/ContentAdmin';
 import UsersAdmin from '@/components/admin/UsersAdmin';
+import TransactionsAdmin from '@/components/admin/TransactionsAdmin';
 
 const NAV = [
-  { key: 'dashboard', label: 'Dashboard',    ico: '📊' },
-  { key: 'products',  label: 'Products',     ico: '🍌' },
-  { key: 'orders',    label: 'Orders',       ico: '📦' },
-  { key: 'content',   label: 'Site Content', ico: '✏️'  },
-  { key: 'users',     label: 'Users',        ico: '👥' },
+  { key: 'dashboard',    label: 'Dashboard',    ico: '📊' },
+  { key: 'products',     label: 'Products',     ico: '🍌' },
+  { key: 'orders',       label: 'Orders',       ico: '📦' },
+  { key: 'transactions', label: 'Transactions', ico: '💳' },
+  { key: 'content',      label: 'Site Content', ico: '✏️'  },
+  { key: 'users',        label: 'Users',        ico: '👥' },
 ];
 
 /* ── Admin Login ─────────────────────────────────────────── */
@@ -136,11 +138,12 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {active === 'dashboard' && <Dashboard />}
-        {active === 'products'  && <ProductsAdmin />}
-        {active === 'orders'    && <OrdersAdmin />}
-        {active === 'content'   && <ContentAdmin />}
-        {active === 'users'     && <UsersAdmin />}
+        {active === 'dashboard'    && <Dashboard />}
+        {active === 'products'     && <ProductsAdmin />}
+        {active === 'orders'       && <OrdersAdmin />}
+        {active === 'transactions' && <TransactionsAdmin />}
+        {active === 'content'      && <ContentAdmin />}
+        {active === 'users'        && <UsersAdmin />}
       </main>
     </div>
   );

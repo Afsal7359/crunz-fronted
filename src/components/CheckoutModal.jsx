@@ -24,27 +24,32 @@ function StripeForm({ grandTotal, currency, clientSecret, orderId, paymentIntent
   const elements = useElements();
   const { clearCart } = useCart();
   const [loading, setLoading] = useState(false);
+  const [ready, setReady] = useState(false);
   const [err, setErr] = useState('');
 
   const handlePay = async () => {
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || !ready) return;
     setLoading(true); setErr('');
     try {
-      const { error: submitErr } = await elements.submit();
-      if (submitErr) { setErr(submitErr.message); setLoading(false); return; }
-
+      // Do NOT call elements.submit() — that's only for deferred mode.
+      // With clientSecret, stripe.confirmPayment handles everything.
       const { error: confirmErr, paymentIntent: pi } = await stripe.confirmPayment({
         elements,
-        clientSecret,
+        confirmParams: { return_url: window.location.href },
         redirect: 'if_required',
       });
       if (confirmErr) { setErr(confirmErr.message); setLoading(false); return; }
 
-      // Immediately confirm with backend — marks order paid without needing webhook
-      await api.post('/payment/confirm-order', {
-        paymentIntentId: pi?.id || paymentIntentId,
+      // pi.id from Stripe OR fall back to the paymentIntentId we got from create-intent
+      const resolvedPid = pi?.id || paymentIntentId;
+      console.log('[Checkout] Payment confirmed, intent:', resolvedPid, 'order:', orderId);
+
+      // Mark order paid in backend
+      const confirmRes = await api.post('/payment/confirm-order', {
+        paymentIntentId: resolvedPid,
         orderId,
       });
+      console.log('[Checkout] Confirm result:', confirmRes);
 
       clearCart();
       onSuccess();
@@ -55,10 +60,18 @@ function StripeForm({ grandTotal, currency, clientSecret, orderId, paymentIntent
 
   return (
     <div>
-      <PaymentElement options={{ layout: 'tabs' }} />
+      <PaymentElement
+        onReady={() => setReady(true)}
+        options={{ layout: { type: 'accordion', defaultCollapsed: false, radios: false, spacedAccordionItems: false } }}
+      />
       {err && <div className="form-err" style={{ marginTop: 10 }}>{err}</div>}
-      <button className="sub-btn" onClick={handlePay} disabled={loading || !stripe} style={{ marginTop: 16 }}>
-        {loading ? 'Processing...' : `Pay ${formatPrice(grandTotal, currency)}`}
+      <button
+        className="sub-btn"
+        onClick={handlePay}
+        disabled={loading || !stripe || !ready}
+        style={{ marginTop: 16 }}
+      >
+        {!ready ? 'Loading...' : loading ? 'Processing...' : `Pay ${formatPrice(grandTotal, currency)}`}
       </button>
     </div>
   );
@@ -149,7 +162,7 @@ export default function CheckoutModal({ content = {} }) {
           ) : clientSecret ? (
             <>
               <button className="am-resend" style={{ marginBottom: 16 }}
-                onClick={() => { setClientSecret(null); setOrderPayload(null); }}>
+                onClick={() => { setClientSecret(null); setOrderId(null); setPaymentIntentId(null); }}>
                 ← Back to delivery details
               </button>
               {/* Compact order summary */}
@@ -172,7 +185,13 @@ export default function CheckoutModal({ content = {} }) {
                   <span>{formatPrice(grandTotal, currency)}</span>
                 </div>
               </div>
-              <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
+              <Elements stripe={stripePromise} options={{
+                clientSecret,
+                appearance: {
+                  theme: 'stripe',
+                  variables: { colorPrimary: '#0a0a0a', borderRadius: '6px' },
+                },
+              }}>
                 <StripeForm
                   grandTotal={grandTotal}
                   currency={currency}

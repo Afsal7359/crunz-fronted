@@ -53,7 +53,7 @@ export function CartProvider({ children }) {
 
   return (
     <CartContext.Provider value={{
-      cart, currency, cartOpen, checkoutOpen,
+      cart, currency, setCurrency, cartOpen, checkoutOpen,
       addToCart, removeFromCart, changeQty, clearCart,
       setCartOpen, setCheckoutOpen,
       itemCount, total
