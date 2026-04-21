@@ -83,7 +83,7 @@ export default function CheckoutModal({ content = {} }) {
   const { charge, isFree } = getDelivery(total, currency, content);
   const grandTotal = total + charge;
 
-  const [form, setForm] = useState({ name: '', phone: '', street: '', city: '', postcode: '', country: 'United Kingdom', notes: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', street: '', city: '', postcode: '', country: 'United Kingdom', notes: '' });
   const [err, setErr]   = useState('');
   const [done, setDone] = useState(false);
   const [clientSecret, setClientSecret] = useState(null);
@@ -100,6 +100,7 @@ export default function CheckoutModal({ content = {} }) {
 
   const validate = () => {
     if (!form.name.trim())     { setErr('Please enter your name'); return false; }
+    if (!form.email.trim())    { setErr('Please enter your email'); return false; }
     if (!form.phone.trim())    { setErr('Please enter your phone number'); return false; }
     if (!form.street.trim())   { setErr('Please enter your street address'); return false; }
     if (!form.postcode.trim()) { setErr('Please enter your postcode'); return false; }
@@ -115,7 +116,7 @@ export default function CheckoutModal({ content = {} }) {
 
       const orderData = {
         items: cart.map(i => ({ product: i._id, name: i.name, image: i.image, priceGBP: i.priceGBP, priceINR: i.priceINR, qty: i.qty })),
-        shippingAddress: { name: form.name, phone: form.phone, street: form.street, city: form.city, postcode: form.postcode, country: form.country },
+        shippingAddress: { name: form.name, email: form.email, phone: form.phone, street: form.street, city: form.city, postcode: form.postcode, country: form.country },
         currency, deliveryCharge: charge, notes: form.notes,
         totalGBP, totalINR,
       };
@@ -238,9 +239,13 @@ export default function CheckoutModal({ content = {} }) {
                   <input className="fi" placeholder="Your full name" value={form.name} onChange={set('name')} />
                 </div>
                 <div className="fg">
-                  <label className="fl">Phone Number *</label>
-                  <input className="fi" placeholder="+44 7xxx..." value={form.phone} onChange={set('phone')} />
+                  <label className="fl">Email *</label>
+                  <input className="fi" type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} />
                 </div>
+              </div>
+              <div className="fg">
+                <label className="fl">Phone Number *</label>
+                <input className="fi" placeholder="+44 7xxx..." value={form.phone} onChange={set('phone')} />
               </div>
               <div className="fg">
                 <label className="fl">Street Address *</label>

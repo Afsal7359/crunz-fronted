@@ -22,7 +22,7 @@ export default function ProfileModal({ open, onClose }) {
     if (!open || !user) return;
     setLoading(true);
     api.get('/orders/my')
-      .then(setOrders)
+      .then(data => setOrders(data.filter(o => o.paymentStatus === 'paid')))
       .catch(() => setOrders([]))
       .finally(() => setLoading(false));
   }, [open, user]);
