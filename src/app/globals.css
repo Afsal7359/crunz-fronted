@@ -49,10 +49,11 @@ nav { position: sticky; top: 0; z-index: 900; background: #fff; border-bottom: 1
 .nav-drop-register:hover { border-color: #0a0a0a; }
 
 /* Cart button */
-.cart-btn { display: flex; align-items: center; gap: 6px; background: #0a0a0a; color: #fff; border: none; font-family: 'Inter', sans-serif; font-weight: 600; font-size: .82rem; padding: 9px 16px; border-radius: 8px; cursor: pointer; transition: opacity .2s; flex-shrink: 0; }
+.cart-btn { display: flex; align-items: center; gap: 7px; background: #0a0a0a; color: #fff; border: none; font-family: 'Inter', sans-serif; font-weight: 600; font-size: .82rem; padding: 9px 16px; border-radius: 8px; cursor: pointer; transition: opacity .2s; flex-shrink: 0; }
 .cart-btn:hover { opacity: .8; }
 .cart-label { display: inline; }
-.cc { background: #fff; color: #0a0a0a; font-size: .62rem; font-weight: 900; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; min-width: 18px; }
+.cart-icon-wrap { position: relative; display: flex; align-items: center; justify-content: center; }
+.cc { position: absolute; top: -9px; right: -11px; background: #ff3b30; color: #fff; font-size: .58rem; font-weight: 900; border-radius: 50%; width: 17px; height: 17px; display: flex; align-items: center; justify-content: center; min-width: 17px; border: 2px solid #0a0a0a; }
 
 /* Hamburger */
 .hbg { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; }
@@ -544,7 +545,8 @@ footer { padding: 56px 5% 28px; border-top: 1px solid #f0f0f0; }
   .navlinks { display: none; }
   .hbg { display: flex; }
   .cart-label { display: none; }
-  .cart-btn { padding: 9px 12px; border-radius: 50%; width: 38px; height: 38px; justify-content: center; }
+  .cart-btn { padding: 10px 12px; border-radius: 50%; width: 42px; height: 42px; justify-content: center; }
+  .cc { width: 18px; height: 18px; font-size: .6rem; top: -7px; right: -7px; border-width: 2px; }
   .nav-right { gap: 8px; }
 
   /* Hero */
