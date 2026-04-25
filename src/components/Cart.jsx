@@ -2,6 +2,7 @@
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/currency';
 import { fixImageUrl } from '@/lib/api';
+import { useAnalytics } from '@/context/AnalyticsContext';
 
 function getDelivery(total, currency, content) {
   const threshold = parseFloat(
@@ -18,8 +19,10 @@ export default function Cart({ content = {} }) {
   const { cart, currency, setCurrency, cartOpen, setCartOpen, setCheckoutOpen, removeFromCart, changeQty, total, itemCount } = useCart();
   const { charge, threshold, isFree } = getDelivery(total, currency, content);
   const grandTotal = total + charge;
+  const { track } = useAnalytics();
 
   const handleCheckout = () => {
+    track('checkout_start', { itemCount, total: grandTotal, currency });
     setCartOpen(false);
     setTimeout(() => setCheckoutOpen(true), 200);
   };

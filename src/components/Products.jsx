@@ -3,9 +3,11 @@ import { useEffect, useRef } from 'react';
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/currency';
 import { fixImageUrl } from '@/lib/api';
+import { useAnalytics } from '@/context/AnalyticsContext';
 
 export default function Products({ products = [], onOpenModal }) {
   const { currency } = useCart();
+  const { track } = useAnalytics();
   const sectionRef = useRef(null);
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function Products({ products = [], onOpenModal }) {
           <div
             key={product._id}
             className="prod-card"
-            onClick={() => onOpenModal(product)}
+            onClick={() => { track('product_view', { id: product._id, name: product.name }); onOpenModal(product); }}
           >
             <div className="prod-img-wrap" style={{ background: '#fafafa' }}>
               {product.badge && <div className="prod-badge">{product.badge}</div>}

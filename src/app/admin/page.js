@@ -9,12 +9,16 @@ import OrdersAdmin from '@/components/admin/OrdersAdmin';
 import ContentAdmin from '@/components/admin/ContentAdmin';
 import UsersAdmin from '@/components/admin/UsersAdmin';
 import TransactionsAdmin from '@/components/admin/TransactionsAdmin';
+import AnalyticsAdmin from '@/components/admin/AnalyticsAdmin';
+import CouponsAdmin from '@/components/admin/CouponsAdmin';
 
 const NAV = [
   { key: 'dashboard',    label: 'Dashboard',    ico: '📊' },
+  { key: 'analytics',    label: 'Analytics',    ico: '📈' },
   { key: 'products',     label: 'Products',     ico: '🍌' },
   { key: 'orders',       label: 'Orders',       ico: '📦' },
   { key: 'transactions', label: 'Transactions', ico: '💳' },
+  { key: 'coupons',      label: 'Coupons',      ico: '🎟️' },
   { key: 'content',      label: 'Site Content', ico: '✏️'  },
   { key: 'users',        label: 'Users',        ico: '👥' },
 ];
@@ -139,9 +143,11 @@ export default function AdminPage() {
         </div>
 
         {active === 'dashboard'    && <Dashboard />}
+        {active === 'analytics'    && <AnalyticsAdmin />}
         {active === 'products'     && <ProductsAdmin />}
         {active === 'orders'       && <OrdersAdmin />}
         {active === 'transactions' && <TransactionsAdmin />}
+        {active === 'coupons'      && <CouponsAdmin />}
         {active === 'content'      && <ContentAdmin />}
         {active === 'users'        && <UsersAdmin />}
       </main>

@@ -3,11 +3,13 @@ import { useState, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/currency';
 import { fixImageUrl } from '@/lib/api';
+import { useAnalytics } from '@/context/AnalyticsContext';
 
 export default function ProductModal({ product, onClose }) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const { addToCart, currency } = useCart();
+  const { track } = useAnalytics();
 
   useEffect(() => {
     setQty(1);
@@ -24,6 +26,7 @@ export default function ProductModal({ product, onClose }) {
 
   const handleAdd = () => {
     addToCart(product, qty);
+    track('add_to_cart', { id: product._id, name: product.name, qty, currency });
     setAdded(true);
     setTimeout(() => { onClose(); setAdded(false); }, 900);
   };

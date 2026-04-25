@@ -232,7 +232,47 @@ export default function ContentAdmin() {
         <SaveBtn label="Save Delivery Settings" />
       </div>
 
-      {/* ── 4. Contact & Social ────────────────────────────────────── */}
+      {/* ── 4. Bundle Section Settings ─────────────────────────────── */}
+      <div className="admin-form-wrap" style={{ marginBottom: 20 }}>
+        <div style={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '-.4px', marginBottom: 4 }}>Bundle &amp; Save Section</div>
+        <div style={{ fontSize: '.78rem', opacity: .45, marginBottom: 18 }}>
+          Control the "Choose Your Pack" section shown between Hero and Marquee. Set discount % per bundle (0 = no discount shown).
+        </div>
+
+        {/* Enable/Disable toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, padding: '14px 16px', background: '#fafafa', border: '1px solid #e8e8e8', borderRadius: 10 }}>
+          <input
+            type="checkbox"
+            id="bundle-enabled"
+            checked={content.bundle_enabled !== 'false'}
+            onChange={e => setContent(c => ({ ...c, bundle_enabled: e.target.checked ? 'true' : 'false' }))}
+            style={{ width: 16, height: 16, cursor: 'pointer' }}
+          />
+          <label htmlFor="bundle-enabled" style={{ fontWeight: 700, fontSize: '.88rem', cursor: 'pointer' }}>
+            Show Bundle Section on website
+          </label>
+        </div>
+
+        {/* Discount settings */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+          {[
+            { key: 'bundle_2_discount', label: '2-Pack Discount (%)', hint: '0 = no discount shown · e.g. 8' },
+            { key: 'bundle_3_discount', label: '3-Pack Discount (%)', hint: '0 = no discount shown · e.g. 12' },
+            { key: 'bundle_4_discount', label: '4-Pack Discount (%)', hint: '0 = no discount shown · e.g. 18' },
+          ].map(f => (
+            <div key={f.key} className="fg">
+              <label className="fl">{f.label}</label>
+              <input className="fi" type="number" min="0" max="100" step="1"
+                value={content[f.key] || '0'} onChange={setField(f.key)} placeholder="0" />
+              <div className="form-hint">{f.hint}</div>
+            </div>
+          ))}
+        </div>
+
+        <SaveBtn label="Save Bundle Settings" />
+      </div>
+
+      {/* ── 5. Contact & Social ────────────────────────────────────── */}
       <div className="admin-form-wrap">
         <div style={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '-.4px', marginBottom: 4 }}>Contact & Social</div>
         <div style={{ fontSize: '.78rem', opacity: .45, marginBottom: 18 }}>Shown in the Contact section and footer.</div>

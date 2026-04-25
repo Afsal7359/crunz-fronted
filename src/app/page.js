@@ -15,8 +15,12 @@ import CheckoutModal from '@/components/CheckoutModal';
 import AuthModal from '@/components/AuthModal';
 import ProfileModal from '@/components/ProfileModal';
 import { api } from '@/lib/api';
+import { AnalyticsProvider } from '@/context/AnalyticsContext';
+import { useAuth } from '@/context/AuthContext';
+import BundleSection from '@/components/BundleSection';
 
-export default function HomePage() {
+function HomeContent() {
+  const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [content, setContent] = useState({});
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -36,7 +40,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <>
+    <AnalyticsProvider userId={user?._id}>
       {showLoader && (
         <div className={`app-loading ${heroLoaded ? 'fade-out' : ''}`}>
           <img src="/images/logo.png" alt="Crunz" className="app-loading-logo" />
@@ -45,6 +49,7 @@ export default function HomePage() {
       )}
       <Navbar content={content} onOpenAuth={() => setAuthOpen(true)} onOpenProfile={() => setProfileOpen(true)} />
       <Hero content={content} products={products} loaded={heroLoaded} />
+      <BundleSection products={products} content={content} />
       <MarqueeBar />
       <Products products={products} onOpenModal={setSelectedProduct} />
       <Features />
@@ -57,6 +62,10 @@ export default function HomePage() {
       <CheckoutModal content={content} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
-    </>
+    </AnalyticsProvider>
   );
+}
+
+export default function HomePage() {
+  return <HomeContent />;
 }
