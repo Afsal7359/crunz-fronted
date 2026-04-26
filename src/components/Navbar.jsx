@@ -38,7 +38,7 @@ export default function Navbar({ content = {}, onOpenAuth, onOpenProfile }) {
           <ul className="navlinks">
             <li><a href="#products">Shop</a></li>
             <li><a href="#spotlight">Flavours</a></li>
-            <li><a href="#features">Why Us</a></li>
+            <li><a href="#videos">Videos</a></li>
             <li><a href="#reviews">Reviews</a></li>
             <li><a href="#contact">Contact</a></li>
           </ul>
@@ -121,7 +121,7 @@ export default function Navbar({ content = {}, onOpenAuth, onOpenProfile }) {
         <button className="mm-x" onClick={() => setMmOpen(false)}>✕</button>
         <a href="#products" onClick={() => setMmOpen(false)}>Shop</a>
         <a href="#spotlight" onClick={() => setMmOpen(false)}>Flavours</a>
-        <a href="#features" onClick={() => setMmOpen(false)}>Why Us</a>
+        <a href="#videos" onClick={() => setMmOpen(false)}>Videos</a>
         <a href="#reviews" onClick={() => setMmOpen(false)}>Reviews</a>
         <a href="#contact" onClick={() => setMmOpen(false)}>Contact</a>
         {user ? (

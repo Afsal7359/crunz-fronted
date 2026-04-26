@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useAnalytics } from '@/context/AnalyticsContext';
 import { formatPrice } from '@/lib/currency';
@@ -73,6 +74,7 @@ function ProductChip({ product, selected, selectable, onClick }) {
 function BundleCard({ bundle, products, currency, discountPct, isFeatured, isMobile }) {
   const { addToCart, setCartOpen } = useCart();
   const { track } = useAnalytics();
+  const router = useRouter();
   const [selected, setSelected] = useState(
     bundle.type === 'all' ? products.map(p => p._id) : []
   );
@@ -233,6 +235,22 @@ function BundleCard({ bundle, products, currency, discountPct, isFeatured, isMob
             : canAdd
             ? `Add to Cart · ${sym}${finalPrice.toFixed(2)}`
             : `Choose ${needed - selected.length} more`}
+        </button>
+
+        {/* View details link */}
+        <button
+          onClick={() => router.push(`/bundle/${bundle.id}`)}
+          style={{
+            all: 'unset', display: 'block', width: '100%', textAlign: 'center',
+            marginTop: 10, fontSize: '.75rem', fontWeight: 600,
+            color: isFeatured ? 'rgba(255,255,255,.5)' : '#888',
+            cursor: 'pointer', textDecoration: 'underline',
+            transition: 'color .15s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.color = isFeatured ? '#fff' : '#0a0a0a'}
+          onMouseLeave={e => e.currentTarget.style.color = isFeatured ? 'rgba(255,255,255,.5)' : '#888'}
+        >
+          View full details →
         </button>
       </div>
     </div>

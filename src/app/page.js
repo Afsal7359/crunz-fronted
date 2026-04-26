@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import MarqueeBar from '@/components/MarqueeBar';
 import Products from '@/components/Products';
-import Features from '@/components/Features';
+import VideosSection from '@/components/VideosSection';
 import Reviews from '@/components/Reviews';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
@@ -52,7 +52,7 @@ function HomeContent() {
       <BundleSection products={products} content={content} />
       <MarqueeBar />
       <Products products={products} onOpenModal={setSelectedProduct} />
-      <Features />
+      <VideosSection content={content} />
       <Reviews />
       <Contact products={products} content={content} onOpenModal={setSelectedProduct} />
       <Footer content={content} />

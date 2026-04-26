@@ -272,7 +272,34 @@ export default function ContentAdmin() {
         <SaveBtn label="Save Bundle Settings" />
       </div>
 
-      {/* ── 5. Contact & Social ────────────────────────────────────── */}
+      {/* ── 5. Videos Section ──────────────────────────────────────── */}
+      <div className="admin-form-wrap" style={{ marginBottom: 20 }}>
+        <div style={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '-.4px', marginBottom: 4 }}>Our Videos Section</div>
+        <div style={{ fontSize: '.78rem', opacity: .45, marginBottom: 18 }}>
+          Paste YouTube video URLs (any format: watch?v=, youtu.be/, shorts/). Up to 3 videos shown. Leave blank to hide.
+        </div>
+        {[
+          { urlKey: 'video_1_url', titleKey: 'video_1_title', label: 'Video 1' },
+          { urlKey: 'video_2_url', titleKey: 'video_2_title', label: 'Video 2' },
+          { urlKey: 'video_3_url', titleKey: 'video_3_title', label: 'Video 3' },
+        ].map(v => (
+          <div key={v.urlKey} style={{ background: '#fafafa', border: '1px solid #e8e8e8', borderRadius: 10, padding: '14px 16px', marginBottom: 10, display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
+            <div className="fg" style={{ margin: 0 }}>
+              <label className="fl">{v.label} — YouTube URL</label>
+              <input className="fi" value={content[v.urlKey] || ''} onChange={setField(v.urlKey)}
+                placeholder="https://www.youtube.com/watch?v=..." />
+            </div>
+            <div className="fg" style={{ margin: 0 }}>
+              <label className="fl">Title (optional)</label>
+              <input className="fi" value={content[v.titleKey] || ''} onChange={setField(v.titleKey)}
+                placeholder="e.g. How it's made" />
+            </div>
+          </div>
+        ))}
+        <SaveBtn label="Save Video Settings" />
+      </div>
+
+      {/* ── 6. Contact & Social ────────────────────────────────────── */}
       <div className="admin-form-wrap">
         <div style={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '-.4px', marginBottom: 4 }}>Contact & Social</div>
         <div style={{ fontSize: '.78rem', opacity: .45, marginBottom: 18 }}>Shown in the Contact section and footer.</div>

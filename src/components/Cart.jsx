@@ -16,7 +16,7 @@ function getDelivery(total, currency, content) {
 }
 
 export default function Cart({ content = {} }) {
-  const { cart, currency, setCurrency, cartOpen, setCartOpen, setCheckoutOpen, removeFromCart, changeQty, total, itemCount } = useCart();
+  const { cart, currency, cartOpen, setCartOpen, setCheckoutOpen, removeFromCart, changeQty, total, itemCount } = useCart();
   const { charge, threshold, isFree } = getDelivery(total, currency, content);
   const grandTotal = total + charge;
   const { track } = useAnalytics();
@@ -33,13 +33,7 @@ export default function Cart({ content = {} }) {
       <div className={`c-pan ${cartOpen ? 'open' : ''}`}>
         <div className="c-hd">
           <div className="c-ttl">Your Cart ({itemCount})</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div className="c-cur-toggle">
-              <button className={currency === 'GBP' ? 'active' : ''} onClick={() => setCurrency('GBP')}>£ GBP</button>
-              <button className={currency === 'INR' ? 'active' : ''} onClick={() => setCurrency('INR')}>₹ INR</button>
-            </div>
-            <button className="c-x" onClick={() => setCartOpen(false)}>✕</button>
-          </div>
+          <button className="c-x" onClick={() => setCartOpen(false)}>✕</button>
         </div>
 
         <div className="c-body">
