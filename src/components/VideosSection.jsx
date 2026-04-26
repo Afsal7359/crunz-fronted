@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useRef } from 'react';
+import { fixImageUrl } from '@/lib/api';
 
-/** Extract YouTube video ID from any YT URL format */
+/** YouTube ID extractor */
 function getYouTubeId(url = '') {
   if (!url) return null;
   const patterns = [
@@ -17,8 +18,47 @@ function getYouTubeId(url = '') {
 
 function getEmbedUrl(url) {
   const id = getYouTubeId(url);
-  if (!id) return null;
-  return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
+  return id ? `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1` : null;
+}
+
+function isLocalVideo(url = '') {
+  return url && !url.includes('youtube') && !url.includes('youtu.be');
+}
+
+/** Single video player — handles YouTube iframe or local HTML5 video */
+function VideoPlayer({ url, title }) {
+  const embedUrl = getEmbedUrl(url);
+  const local = isLocalVideo(url);
+
+  if (embedUrl) {
+    return (
+      <div style={{ position: 'relative', paddingBottom: '56.25%', borderRadius: 16, overflow: 'hidden', background: '#111', border: '1px solid rgba(255,255,255,.08)' }}>
+        <iframe
+          src={embedUrl}
+          title={title || 'Crunz Video'}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
+        />
+      </div>
+    );
+  }
+
+  if (local) {
+    return (
+      <div style={{ borderRadius: 16, overflow: 'hidden', background: '#111', border: '1px solid rgba(255,255,255,.08)' }}>
+        <video
+          src={fixImageUrl(url)}
+          controls
+          playsInline
+          preload="metadata"
+          style={{ width: '100%', display: 'block', maxHeight: 360, objectFit: 'contain', background: '#000' }}
+        />
+      </div>
+    );
+  }
+
+  return null;
 }
 
 export default function VideosSection({ content = {} }) {
@@ -33,12 +73,11 @@ export default function VideosSection({ content = {} }) {
     return () => obs.disconnect();
   }, []);
 
-  // Read up to 3 video entries from content
   const videos = [
     { url: content.video_1_url, title: content.video_1_title || '' },
     { url: content.video_2_url, title: content.video_2_title || '' },
     { url: content.video_3_url, title: content.video_3_title || '' },
-  ].filter(v => v.url && getYouTubeId(v.url));
+  ].filter(v => v.url && (getYouTubeId(v.url) || isLocalVideo(v.url)));
 
   const hasVideos = videos.length > 0;
 
@@ -84,26 +123,7 @@ export default function VideosSection({ content = {} }) {
           >
             {videos.map((v, i) => (
               <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div style={{
-                  position: 'relative',
-                  paddingBottom: '56.25%', /* 16:9 */
-                  borderRadius: 16,
-                  overflow: 'hidden',
-                  background: '#111',
-                  border: '1px solid rgba(255,255,255,.08)',
-                }}>
-                  <iframe
-                    src={getEmbedUrl(v.url)}
-                    title={v.title || `Crunz Video ${i + 1}`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    style={{
-                      position: 'absolute', inset: 0,
-                      width: '100%', height: '100%',
-                      border: 'none',
-                    }}
-                  />
-                </div>
+                <VideoPlayer url={v.url} title={v.title || `Crunz Video ${i + 1}`} />
                 {v.title && (
                   <div style={{ color: 'rgba(255,255,255,.65)', fontSize: '.85rem', fontWeight: 600, paddingLeft: 2 }}>
                     {v.title}

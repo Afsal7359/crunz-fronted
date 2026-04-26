@@ -131,6 +131,127 @@ function SlideManager({ slides, setSlides, title, hint, emptyNote, onSave, savin
   );
 }
 
+// ── Video upload manager ────────────────────────────────────────────
+const VIDEO_SLOTS = [
+  { urlKey: 'video_1_url', titleKey: 'video_1_title', label: 'Video 1' },
+  { urlKey: 'video_2_url', titleKey: 'video_2_title', label: 'Video 2' },
+  { urlKey: 'video_3_url', titleKey: 'video_3_title', label: 'Video 3' },
+];
+
+function VideoSlot({ slot, content, setContent, onSave, saving, saved }) {
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [err, setErr] = useState('');
+  const url = content[slot.urlKey] || '';
+  const isLocal = url && !url.includes('youtube') && !url.includes('youtu.be');
+
+  const handleFile = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 25 * 1024 * 1024) { setErr('File exceeds 25 MB limit'); return; }
+    setErr(''); setUploading(true); setProgress(0);
+    const fd = new FormData();
+    fd.append('video', file);
+    try {
+      const d = await api.upload('/upload/video', fd, pct => setProgress(pct));
+      setContent(c => ({ ...c, [slot.urlKey]: d.url }));
+    } catch (ex) { setErr(ex.message); }
+    setUploading(false); setProgress(0);
+    e.target.value = '';
+  };
+
+  const handleClear = () => setContent(c => ({ ...c, [slot.urlKey]: '', [slot.titleKey]: '' }));
+
+  return (
+    <div style={{ border: '1px solid #e8e8e8', borderRadius: 12, padding: 18, marginBottom: 12, background: '#fafafa' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        <span style={{ fontWeight: 700, fontSize: '.88rem' }}>{slot.label}</span>
+        {url && <button className="act-btn danger" onClick={handleClear}>Remove</button>}
+      </div>
+
+      {/* Current video preview */}
+      {url && (
+        <div style={{ marginBottom: 14 }}>
+          {isLocal ? (
+            <video
+              src={url} controls
+              style={{ width: '100%', maxHeight: 200, borderRadius: 8, background: '#000', display: 'block' }}
+            />
+          ) : (
+            <div style={{ fontSize: '.78rem', padding: '8px 12px', background: '#fff', border: '1px solid #e8e8e8', borderRadius: 8, wordBreak: 'break-all', opacity: .7 }}>
+              🔗 {url}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        {/* Upload */}
+        <div>
+          <label className="fl">Upload Video (max 25 MB)</label>
+          <input
+            type="file" accept="video/mp4,video/webm,video/quicktime,video/x-msvideo,.mp4,.webm,.mov,.avi,.mkv"
+            className="fi" style={{ padding: '7px 10px' }}
+            onChange={handleFile}
+            disabled={uploading}
+          />
+          {uploading && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ height: 4, background: '#efefef', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${progress}%`, background: '#0a0a0a', borderRadius: 4, transition: 'width .2s' }} />
+              </div>
+              <div style={{ fontSize: '.72rem', opacity: .5, marginTop: 4 }}>{progress}% uploaded…</div>
+            </div>
+          )}
+          {err && <div style={{ fontSize: '.75rem', color: '#dc2626', marginTop: 6 }}>{err}</div>}
+        </div>
+
+        {/* OR YouTube URL */}
+        <div>
+          <label className="fl">OR YouTube URL</label>
+          <input
+            className="fi"
+            value={isLocal ? '' : url}
+            onChange={e => setContent(c => ({ ...c, [slot.urlKey]: e.target.value }))}
+            placeholder="https://www.youtube.com/watch?v=..."
+            disabled={uploading}
+          />
+          <div className="form-hint">Supports watch?v=, youtu.be/, shorts/</div>
+        </div>
+      </div>
+
+      {/* Title */}
+      <div className="fg" style={{ marginTop: 10, marginBottom: 0 }}>
+        <label className="fl">Title (optional)</label>
+        <input
+          className="fi"
+          value={content[slot.titleKey] || ''}
+          onChange={e => setContent(c => ({ ...c, [slot.titleKey]: e.target.value }))}
+          placeholder="e.g. How it's made"
+        />
+      </div>
+    </div>
+  );
+}
+
+function VideoManager({ content, setContent, onSave, saving, saved }) {
+  return (
+    <div className="admin-form-wrap" style={{ marginBottom: 20 }}>
+      <div style={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '-.4px', marginBottom: 4 }}>Our Videos Section</div>
+      <div style={{ fontSize: '.78rem', opacity: .45, marginBottom: 18 }}>
+        Upload videos (MP4 · max 25 MB) or paste a YouTube URL for each slot. Up to 3 videos shown on the site.
+      </div>
+      {VIDEO_SLOTS.map(slot => (
+        <VideoSlot key={slot.urlKey} slot={slot} content={content} setContent={setContent}
+          onSave={onSave} saving={saving} saved={saved} />
+      ))}
+      <button className="act-btn primary" onClick={onSave} disabled={saving} style={{ marginTop: 4 }}>
+        {saving ? 'Saving…' : saved ? '✓ Saved!' : 'Save Video Settings'}
+      </button>
+    </div>
+  );
+}
+
 // ── Main ContentAdmin ───────────────────────────────────────────────
 export default function ContentAdmin() {
   const [content, setContent]       = useState({});
@@ -273,31 +394,7 @@ export default function ContentAdmin() {
       </div>
 
       {/* ── 5. Videos Section ──────────────────────────────────────── */}
-      <div className="admin-form-wrap" style={{ marginBottom: 20 }}>
-        <div style={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '-.4px', marginBottom: 4 }}>Our Videos Section</div>
-        <div style={{ fontSize: '.78rem', opacity: .45, marginBottom: 18 }}>
-          Paste YouTube video URLs (any format: watch?v=, youtu.be/, shorts/). Up to 3 videos shown. Leave blank to hide.
-        </div>
-        {[
-          { urlKey: 'video_1_url', titleKey: 'video_1_title', label: 'Video 1' },
-          { urlKey: 'video_2_url', titleKey: 'video_2_title', label: 'Video 2' },
-          { urlKey: 'video_3_url', titleKey: 'video_3_title', label: 'Video 3' },
-        ].map(v => (
-          <div key={v.urlKey} style={{ background: '#fafafa', border: '1px solid #e8e8e8', borderRadius: 10, padding: '14px 16px', marginBottom: 10, display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
-            <div className="fg" style={{ margin: 0 }}>
-              <label className="fl">{v.label} — YouTube URL</label>
-              <input className="fi" value={content[v.urlKey] || ''} onChange={setField(v.urlKey)}
-                placeholder="https://www.youtube.com/watch?v=..." />
-            </div>
-            <div className="fg" style={{ margin: 0 }}>
-              <label className="fl">Title (optional)</label>
-              <input className="fi" value={content[v.titleKey] || ''} onChange={setField(v.titleKey)}
-                placeholder="e.g. How it's made" />
-            </div>
-          </div>
-        ))}
-        <SaveBtn label="Save Video Settings" />
-      </div>
+      <VideoManager content={content} setContent={setContent} onSave={handleSave} saving={saving} saved={saved} />
 
       {/* ── 6. Contact & Social ────────────────────────────────────── */}
       <div className="admin-form-wrap">
