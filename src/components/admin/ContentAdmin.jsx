@@ -138,7 +138,23 @@ const VIDEO_SLOTS = [
   { urlKey: 'video_3_url', titleKey: 'video_3_title', label: 'Video 3' },
 ];
 
-function VideoSlot({ slot, content, setContent, onSave, saving, saved }) {
+function extractVideoFilename(url = '') {
+  // Matches /uploads/videos/<filename>
+  const m = url.match(/\/uploads\/videos\/([^/?#]+)/);
+  return m ? m[1] : null;
+}
+
+async function deleteVideoFile(url) {
+  const filename = extractVideoFilename(url);
+  if (!filename) return; // YouTube URL or empty — nothing to delete
+  try {
+    await api.delete(`/upload/video/${encodeURIComponent(filename)}`);
+  } catch (e) {
+    console.warn('[VideoSlot] Failed to delete file from server:', e.message);
+  }
+}
+
+function VideoSlot({ slot, content, setContent }) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [err, setErr] = useState('');
@@ -150,6 +166,8 @@ function VideoSlot({ slot, content, setContent, onSave, saving, saved }) {
     if (!file) return;
     if (file.size > 25 * 1024 * 1024) { setErr('File exceeds 25 MB limit'); return; }
     setErr(''); setUploading(true); setProgress(0);
+    // Delete old local file before uploading new one
+    if (isLocal) await deleteVideoFile(url);
     const fd = new FormData();
     fd.append('video', file);
     try {
@@ -160,7 +178,10 @@ function VideoSlot({ slot, content, setContent, onSave, saving, saved }) {
     e.target.value = '';
   };
 
-  const handleClear = () => setContent(c => ({ ...c, [slot.urlKey]: '', [slot.titleKey]: '' }));
+  const handleClear = async () => {
+    if (isLocal) await deleteVideoFile(url);
+    setContent(c => ({ ...c, [slot.urlKey]: '', [slot.titleKey]: '' }));
+  };
 
   return (
     <div style={{ border: '1px solid #e8e8e8', borderRadius: 12, padding: 18, marginBottom: 12, background: '#fafafa' }}>
@@ -242,8 +263,7 @@ function VideoManager({ content, setContent, onSave, saving, saved }) {
         Upload videos (MP4 · max 25 MB) or paste a YouTube URL for each slot. Up to 3 videos shown on the site.
       </div>
       {VIDEO_SLOTS.map(slot => (
-        <VideoSlot key={slot.urlKey} slot={slot} content={content} setContent={setContent}
-          onSave={onSave} saving={saving} saved={saved} />
+        <VideoSlot key={slot.urlKey} slot={slot} content={content} setContent={setContent} />
       ))}
       <button className="act-btn primary" onClick={onSave} disabled={saving} style={{ marginTop: 4 }}>
         {saving ? 'Saving…' : saved ? '✓ Saved!' : 'Save Video Settings'}
