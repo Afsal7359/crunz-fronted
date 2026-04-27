@@ -640,3 +640,10 @@ footer { padding: 56px 5% 28px; border-top: 1px solid #f0f0f0; }
   /* Nav dropdown — full width on mobile */
   .nav-drop { right: -10px; width: calc(100vw - 32px); }
 }
+
+/* VIDEOS SECTION */
+#videos .rv { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+#videos .rv.vis { opacity: 1; transform: none; }
+@media (max-width: 768px) {
+  #videos .vid-grid { grid-template-columns: 1fr !important; }
+}

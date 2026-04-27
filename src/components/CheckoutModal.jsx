@@ -85,7 +85,8 @@ export default function CheckoutModal({ content = {} }) {
   const { checkoutOpen, setCheckoutOpen, cart, currency, total, clearCart } = useCart();
   const { charge, isFree } = getDelivery(total, currency, content);
 
-  const [form, setForm] = useState({ name: '', email: '', phone: '', street: '', city: '', postcode: '', country: 'United Kingdom', notes: '' });
+  const defaultCountry = currency === 'INR' ? 'India' : 'United Kingdom';
+  const [form, setForm] = useState({ name: '', email: '', phone: '', street: '', city: '', postcode: '', country: defaultCountry, notes: '' });
   const [err, setErr]           = useState('');
   const [done, setDone]         = useState(false);
   const [clientSecret, setClientSecret] = useState(null);
@@ -346,8 +347,11 @@ export default function CheckoutModal({ content = {} }) {
                 </div>
               </div>
               <div className="fg">
-                <label className="fl">Country</label>
-                <input className="fi" placeholder="United Kingdom" value={form.country} onChange={set('country')} />
+                <label className="fl">Country *</label>
+                <select className="fi" value={form.country} onChange={set('country')} style={{ cursor: 'pointer' }}>
+                  <option value="United Kingdom">🇬🇧 United Kingdom</option>
+                  <option value="India">🇮🇳 India</option>
+                </select>
               </div>
               <div className="fg">
                 <label className="fl">Notes (optional)</label>

@@ -297,8 +297,8 @@ function ProductDetailContent({ products, content, product }) {
                 </div>
               )}
 
-              {/* CTA Buttons */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {/* CTA Buttons — desktop only, hidden on mobile */}
+              <div className="pd-cta-desktop" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <button
                   onClick={handleBuyNow}
                   style={{
@@ -377,18 +377,124 @@ function ProductDetailContent({ products, content, product }) {
         )}
       </main>
 
+      {/* ── Mobile sticky bottom bar ── */}
+      <div className="pd-sticky-bar">
+        {/* Qty + price row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+            <button
+              onClick={() => setQty(q => Math.max(1, q - 1))}
+              style={{
+                width: 38, height: 38, borderRadius: '8px 0 0 8px',
+                border: '1.5px solid #e0e0e0', borderRight: 'none',
+                background: '#fff', fontSize: '1.1rem', fontWeight: 700,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >−</button>
+            <div style={{
+              width: 44, height: 38, border: '1.5px solid #e0e0e0',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontWeight: 800, fontSize: '1rem',
+            }}>{qty}</div>
+            <button
+              onClick={() => setQty(q => q + 1)}
+              style={{
+                width: 38, height: 38, borderRadius: '0 8px 8px 0',
+                border: '1.5px solid #e0e0e0', borderLeft: 'none',
+                background: '#fff', fontSize: '1.1rem', fontWeight: 700,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >+</button>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '1.15rem', fontWeight: 900, letterSpacing: '-.5px' }}>
+              {formatPrice(price * qty, currency)}
+            </div>
+            {qty > 1 && (
+              <div style={{ fontSize: '.68rem', opacity: .45, marginTop: 1 }}>{qty} × {formatPrice(price, currency)}</div>
+            )}
+          </div>
+        </div>
+
+        {/* Action buttons row */}
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            onClick={handleAdd}
+            style={{
+              flex: 1,
+              background: added ? '#16a34a' : '#fff',
+              color: added ? '#fff' : '#0a0a0a',
+              border: added ? '2px solid #16a34a' : '2px solid #0a0a0a',
+              borderRadius: 12, padding: '14px 10px',
+              fontSize: '.95rem', fontWeight: 800,
+              cursor: 'pointer', transition: 'all .2s',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}
+          >
+            {added ? (
+              <>✓ Added</>
+            ) : (
+              <>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+                Add to Cart
+              </>
+            )}
+          </button>
+          <button
+            onClick={handleBuyNow}
+            style={{
+              flex: 1,
+              background: '#0a0a0a', color: '#fff',
+              border: '2px solid #0a0a0a',
+              borderRadius: 12, padding: '14px 10px',
+              fontSize: '.95rem', fontWeight: 800,
+              cursor: 'pointer', transition: 'opacity .15s',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+            }}
+          >
+            Buy Now →
+          </button>
+        </div>
+      </div>
+
       <Footer content={content} />
       <Cart content={content} />
       <CheckoutModal content={content} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
 
-      {/* Responsive styles */}
       <style>{`
+        /* Desktop: show inline CTAs, hide sticky bar */
+        .pd-cta-desktop { display: flex; }
+        .pd-sticky-bar { display: none; }
+
         @media (max-width: 768px) {
-          .pd-hero-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
+          .pd-hero-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
           .pd-related-grid { grid-template-columns: 1fr !important; }
+
+          /* Hide inline CTAs on mobile — sticky bar takes over */
+          .pd-cta-desktop { display: none !important; }
+
+          /* Sticky bottom action bar */
+          .pd-sticky-bar {
+            display: block;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 1500;
+            background: #fff;
+            border-top: 1px solid #f0f0f0;
+            padding: 12px 16px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            box-shadow: 0 -4px 24px rgba(0,0,0,.10);
+          }
+
+          /* Push footer above sticky bar */
+          main { padding-bottom: 130px; }
         }
+
         @media (max-width: 480px) {
           .pd-related-grid { grid-template-columns: 1fr !important; }
         }

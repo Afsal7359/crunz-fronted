@@ -18,7 +18,9 @@ function getYouTubeId(url = '') {
 
 function getEmbedUrl(url) {
   const id = getYouTubeId(url);
-  return id ? `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1` : null;
+  if (!id) return null;
+  // autoplay=1, mute=1, loop=1, playlist=id (required for loop), controls=1
+  return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&autoplay=1&mute=1&loop=1&playlist=${id}&controls=1`;
 }
 
 function isLocalVideo(url = '') {
@@ -36,7 +38,7 @@ function VideoPlayer({ url, title }) {
         <iframe
           src={embedUrl}
           title={title || 'Crunz Video'}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
         />
@@ -49,9 +51,11 @@ function VideoPlayer({ url, title }) {
       <div style={{ borderRadius: 16, overflow: 'hidden', background: '#111', border: '1px solid rgba(255,255,255,.08)' }}>
         <video
           src={fixImageUrl(url)}
-          controls
+          autoPlay
+          muted
+          loop
           playsInline
-          preload="metadata"
+          controls
           style={{ width: '100%', display: 'block', maxHeight: 360, objectFit: 'contain', background: '#000' }}
         />
       </div>
@@ -110,7 +114,7 @@ export default function VideosSection({ content = {} }) {
         {/* Videos grid */}
         {hasVideos ? (
           <div
-            className="rv"
+            className="rv vid-grid"
             style={{
               display: 'grid',
               gridTemplateColumns: videos.length === 1
@@ -157,20 +161,9 @@ export default function VideosSection({ content = {} }) {
                 </span>
               </div>
             ))}
-            <style>{`@media(max-width:640px){ .vid-ph-grid { grid-template-columns: 1fr !important; } }`}</style>
           </div>
         )}
       </div>
-
-      <style>{`
-        #videos .rv { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
-        #videos .rv.vis { opacity: 1; transform: none; }
-        @media(max-width: 768px) {
-          #videos > div > div:last-child {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
     </section>
   );
 }
