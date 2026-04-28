@@ -9,15 +9,23 @@ export const metadata = {
   description: 'Thinner, crispier, more flavourful. Handpicked bananas, four extraordinary flavours crafted in the UK.',
   keywords: 'banana chips, crunz, premium snacks, uk, natural snacks',
   icons: {
-    icon: [{ url: '/images/logo.png', type: 'image/png' }],
-    apple: [{ url: '/images/logo.png', type: 'image/png' }],
-    shortcut: '/images/logo.png',
+    icon: [
+      { url: '/favicon.ico', type: 'image/png', sizes: 'any' },
+      { url: '/images/logo.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: [{ url: '/images/logo.png', type: 'image/png', sizes: '512x512' }],
+    shortcut: '/favicon.ico',
   },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.ico" type="image/png" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/png" />
+        <link rel="apple-touch-icon" href="/images/logo.png" />
+      </head>
       <body>
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
           <AuthProvider>
