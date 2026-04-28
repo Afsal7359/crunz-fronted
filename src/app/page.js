@@ -5,7 +5,6 @@ import Hero from '@/components/Hero';
 import MarqueeBar from '@/components/MarqueeBar';
 import Products from '@/components/Products';
 import VideosSection from '@/components/VideosSection';
-import Reviews from '@/components/Reviews';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
 import WaFloat from '@/components/WaFloat';
@@ -53,7 +52,6 @@ function HomeContent() {
       <MarqueeBar />
       <Products products={products} onOpenModal={setSelectedProduct} />
       <VideosSection content={content} />
-      <Reviews />
       <Contact products={products} content={content} onOpenModal={setSelectedProduct} />
       <Footer content={content} />
       <WaFloat wa={content.whatsapp} />

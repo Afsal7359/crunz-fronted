@@ -268,31 +268,19 @@ export default function BundleSection({ products = [], content = {} }) {
   // Admin can disable entire section
   if (content.bundle_enabled === 'false') return null;
 
-  // Discount values from admin (0 or empty = no discount shown)
-  const disc2 = content.bundle_2_discount || '0';
-  const disc3 = content.bundle_3_discount || '0';
+  // Discount value from admin (0 or empty = no discount shown)
   const disc4 = content.bundle_4_discount || '0';
 
-  // Define bundles — layout order: [2-pick LEFT] [4-all CENTER] [3-pick RIGHT]
+  // Only show the ultimate (All Flavours) bundle
   const defs = [
-    {
-      id: 'starter', type: 'pick', count: 2,
-      tag: 'Starter Pack', title: 'Pick 2 Flavours',
-      subtitle: 'Perfect intro to Crunz',
-    },
     {
       id: 'ultimate', type: 'all', count: inStock.length,
       tag: 'Best Value', title: `All ${inStock.length} Flavours`,
       subtitle: 'The full Crunz experience',
     },
-    {
-      id: 'trio', type: 'pick', count: 3,
-      tag: 'Popular Pick', title: 'Pick 3 Flavours',
-      subtitle: 'Our bestselling combo',
-    },
-  ].filter(b => b.type === 'all' || inStock.length >= b.count);
+  ];
 
-  const discMap = { starter: disc2, trio: disc3, ultimate: disc4 };
+  const discMap = { ultimate: disc4 };
 
   return (
     <section style={{ padding: isMobile ? '40px 14px' : '80px 20px', background: '#fafafa', position: 'relative', overflow: 'hidden' }}>
@@ -308,47 +296,21 @@ export default function BundleSection({ products = [], content = {} }) {
             Choose Your Pack
           </h2>
           <p style={{ fontSize: isMobile ? '.82rem' : '.95rem', color: '#666', maxWidth: 340, margin: '0 auto', lineHeight: 1.5 }}>
-            Tap a flavour to select it
+            All four flavours. One great deal.
           </p>
         </div>
 
-        {/* Cards */}
-        {isMobile ? (
-          // Mobile: stack vertically, featured first
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {[...defs].sort((a, b) => (b.type === 'all' ? 1 : 0) - (a.type === 'all' ? 1 : 0)).map(bundle => (
-              <BundleCard
-                key={bundle.id}
-                bundle={bundle}
-                products={inStock}
-                currency={currency}
-                discountPct={discMap[bundle.id]}
-                isFeatured={bundle.type === 'all'}
-                isMobile={isMobile}
-              />
-            ))}
-          </div>
-        ) : (
-          // Desktop: 3 columns, center featured
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(${Math.min(defs.length, 3)}, 1fr)`,
-            gap: 20,
-            alignItems: 'center',
-          }}>
-            {defs.map(bundle => (
-              <BundleCard
-                key={bundle.id}
-                bundle={bundle}
-                products={inStock}
-                currency={currency}
-                discountPct={discMap[bundle.id]}
-                isFeatured={bundle.type === 'all'}
-                isMobile={false}
-              />
-            ))}
-          </div>
-        )}
+        {/* Single centered card */}
+        <div style={{ maxWidth: 480, margin: '0 auto' }}>
+          <BundleCard
+            bundle={defs[0]}
+            products={inStock}
+            currency={currency}
+            discountPct={discMap['ultimate']}
+            isFeatured={true}
+            isMobile={isMobile}
+          />
+        </div>
       </div>
     </section>
   );

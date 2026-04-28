@@ -9,8 +9,9 @@ export const metadata = {
   description: 'Thinner, crispier, more flavourful. Handpicked bananas, four extraordinary flavours crafted in the UK.',
   keywords: 'banana chips, crunz, premium snacks, uk, natural snacks',
   icons: {
-    icon: '/images/logo.png',
-    apple: '/images/logo.png',
+    icon: [{ url: '/images/logo.png', type: 'image/png' }],
+    apple: [{ url: '/images/logo.png', type: 'image/png' }],
+    shortcut: '/images/logo.png',
   },
 };
 
@@ -36,6 +37,30 @@ export default function RootLayout({ children }) {
             })(window,document,"clarity","script","whax86d9fa");`,
           }}
         />
+        <Script
+          id="meta-pixel"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window,document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1269721075334727');
+fbq('track','PageView');`,
+          }}
+        />
+        <noscript>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            height="1" width="1" style={{ display: 'none' }}
+            src="https://www.facebook.com/tr?id=1269721075334727&ev=PageView&noscript=1"
+            alt=""
+          />
+        </noscript>
       </body>
     </html>
   );
