@@ -7,6 +7,8 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authModalOpen, setAuthModalOpen]   = useState(false);
+  const [authOnSuccess, setAuthOnSuccess]   = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('crunz_token');
@@ -37,8 +39,19 @@ export function AuthProvider({ children }) {
     } catch {}
   };
 
+  // Open auth modal; optional callback runs after successful login/register
+  const openAuthModal = (onSuccess) => {
+    setAuthOnSuccess(() => onSuccess || null);
+    setAuthModalOpen(true);
+  };
+
+  const closeAuthModal = () => {
+    setAuthModalOpen(false);
+    setAuthOnSuccess(null);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser, authModalOpen, authOnSuccess, openAuthModal, closeAuthModal }}>
       {children}
     </AuthContext.Provider>
   );

@@ -3,6 +3,7 @@ import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/currency';
 import { fixImageUrl } from '@/lib/api';
 import { useAnalytics } from '@/context/AnalyticsContext';
+import { useAuth } from '@/context/AuthContext';
 
 function getDelivery(total, currency, content) {
   const threshold = parseFloat(
@@ -20,8 +21,18 @@ export default function Cart({ content = {} }) {
   const { charge, threshold, isFree } = getDelivery(total, currency, content);
   const grandTotal = total + charge;
   const { track } = useAnalytics();
+  const { user, openAuthModal } = useAuth();
 
   const handleCheckout = () => {
+    if (!user) {
+      // Not logged in — close cart, open login, then re-open checkout after success
+      setCartOpen(false);
+      openAuthModal(() => {
+        track('checkout_start', { itemCount, total: grandTotal, currency });
+        setTimeout(() => setCheckoutOpen(true), 300);
+      });
+      return;
+    }
     track('checkout_start', { itemCount, total: grandTotal, currency });
     setCartOpen(false);
     setTimeout(() => setCheckoutOpen(true), 200);

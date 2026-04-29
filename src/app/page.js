@@ -19,13 +19,12 @@ import { useAuth } from '@/context/AuthContext';
 import BundleSection from '@/components/BundleSection';
 
 function HomeContent() {
-  const { user } = useAuth();
+  const { user, authModalOpen, authOnSuccess, openAuthModal, closeAuthModal } = useAuth();
   const [products, setProducts] = useState([]);
   const [content, setContent] = useState({});
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [heroLoaded, setHeroLoaded] = useState(false);
   const [showLoader, setShowLoader] = useState(true);
-  const [authOpen, setAuthOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
@@ -46,7 +45,7 @@ function HomeContent() {
           <div className="app-loading-bar"><div className="app-loading-fill" /></div>
         </div>
       )}
-      <Navbar content={content} onOpenAuth={() => setAuthOpen(true)} onOpenProfile={() => setProfileOpen(true)} />
+      <Navbar content={content} onOpenAuth={() => openAuthModal()} onOpenProfile={() => setProfileOpen(true)} />
       <Hero content={content} products={products} loaded={heroLoaded} />
       <BundleSection products={products} content={content} />
       <MarqueeBar />
@@ -58,7 +57,7 @@ function HomeContent() {
       <Cart content={content} />
       <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
       <CheckoutModal content={content} />
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthModal open={authModalOpen} onClose={closeAuthModal} onSuccess={authOnSuccess} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
     </AnalyticsProvider>
   );
