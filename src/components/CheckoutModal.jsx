@@ -1,8 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/currency';
 import { useAnalytics } from '@/context/AnalyticsContext';
@@ -20,7 +21,7 @@ function getDelivery(total, currency, content) {
 }
 
 // ── Stripe inner form ────────────────────────────────────────────────
-function StripeForm({ grandTotal, currency, clientSecret, orderId, paymentIntentId, onSuccess }) {
+function StripeForm({ grandTotal, currency, clientSecret, orderId, paymentIntentId, onSuccess, returnBase }) {
   const stripe = useStripe();
   const elements = useElements();
   const { clearCart } = useCart();
@@ -34,9 +35,11 @@ function StripeForm({ grandTotal, currency, clientSecret, orderId, paymentIntent
     setLoading(true); setErr('');
     track('payment_start', { amount: grandTotal, currency });
     try {
+      // return_url handles UPI redirect back; card/Apple Pay resolve inline (redirect: 'if_required')
+      const returnUrl = `${returnBase || window.location.origin}/payment-complete?orderId=${orderId || ''}`;
       const { error: confirmErr, paymentIntent: pi } = await stripe.confirmPayment({
         elements,
-        confirmParams: { return_url: window.location.href },
+        confirmParams: { return_url: returnUrl },
         redirect: 'if_required',
       });
       if (confirmErr) {
@@ -65,7 +68,10 @@ function StripeForm({ grandTotal, currency, clientSecret, orderId, paymentIntent
     <div>
       <PaymentElement
         onReady={() => setReady(true)}
-        options={{ layout: { type: 'accordion', defaultCollapsed: false, radios: false, spacedAccordionItems: false } }}
+        options={{
+          layout: { type: 'accordion', defaultCollapsed: false, radios: false, spacedAccordionItems: true },
+          wallets: { applePay: 'auto', googlePay: 'auto' },
+        }}
       />
       {err && <div className="form-err" style={{ marginTop: 10 }}>{err}</div>}
       <button
@@ -83,10 +89,22 @@ function StripeForm({ grandTotal, currency, clientSecret, orderId, paymentIntent
 // ── Main checkout modal ──────────────────────────────────────────────
 export default function CheckoutModal({ content = {} }) {
   const { checkoutOpen, setCheckoutOpen, cart, currency, total, clearCart } = useCart();
+  const { user } = useAuth();
   const { charge, isFree } = getDelivery(total, currency, content);
 
   const defaultCountry = currency === 'INR' ? 'India' : 'United Kingdom';
   const [form, setForm] = useState({ name: '', email: '', phone: '', street: '', city: '', postcode: '', country: defaultCountry, notes: '' });
+
+  // Pre-fill name & email from logged-in user whenever modal opens
+  useEffect(() => {
+    if (checkoutOpen && user) {
+      setForm(f => ({
+        ...f,
+        name:  f.name  || user.name  || '',
+        email: f.email || user.email || '',
+      }));
+    }
+  }, [checkoutOpen, user]);
   const [err, setErr]           = useState('');
   const [done, setDone]         = useState(false);
   const [clientSecret, setClientSecret] = useState(null);
@@ -247,6 +265,7 @@ export default function CheckoutModal({ content = {} }) {
                   orderId={orderId}
                   paymentIntentId={paymentIntentId}
                   onSuccess={() => setDone(true)}
+                  returnBase={typeof window !== 'undefined' ? window.location.origin : ''}
                 />
               </Elements>
             </>
