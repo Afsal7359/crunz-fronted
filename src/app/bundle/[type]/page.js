@@ -172,6 +172,7 @@ function IndividualCard({ product, currency, onNavigate }) {
 /* ─── Main bundle detail content ─── */
 function BundleDetailContent({ products, content, bundleDef }) {
   const { currency, addToCart, setCartOpen } = useCart();
+  const { openAuthModal, closeAuthModal, authModalOpen } = useAuth();
   const { track } = useAnalytics();
   const router = useRouter();
 
@@ -183,7 +184,6 @@ function BundleDetailContent({ products, content, bundleDef }) {
 
   const [selected, setSelected] = useState(isAll ? products.map(p => p._id) : []);
   const [added, setAdded]       = useState(false);
-  const [authOpen, setAuthOpen]   = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
   const selectedProducts = isAll ? products : products.filter(p => selected.includes(p._id));
@@ -221,7 +221,7 @@ function BundleDetailContent({ products, content, bundleDef }) {
 
   return (
     <>
-      <Navbar content={content} onOpenAuth={() => setAuthOpen(true)} onOpenProfile={() => setProfileOpen(true)} />
+      <Navbar content={content} onOpenAuth={() => openAuthModal()} onOpenProfile={() => setProfileOpen(true)} />
 
       <main style={{ minHeight: '80vh', background: '#fff' }}>
 
@@ -492,7 +492,7 @@ function BundleDetailContent({ products, content, bundleDef }) {
       <Footer content={content} />
       <Cart content={content} />
       <CheckoutModal content={content} />
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthModal open={authModalOpen} onClose={closeAuthModal} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
 
       <style>{`

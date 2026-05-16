@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useRef } from 'react';
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/currency';
 import { fixImageUrl } from '@/lib/api';
@@ -21,21 +22,41 @@ export default function Cart({ content = {} }) {
   const { charge, threshold, isFree } = getDelivery(total, currency, content);
   const grandTotal = total + charge;
   const { track } = useAnalytics();
-  const { user, openAuthModal } = useAuth();
+  const { user, loading, openAuthModal } = useAuth();
+
+  // Set when checkout is clicked but auth isn't resolved yet or user isn't logged in
+  const pendingCheckout = useRef(false);
+
+  useEffect(() => {
+    if (!pendingCheckout.current || loading) return;
+    if (user) {
+      // Auth resolved and user is logged in — open checkout
+      pendingCheckout.current = false;
+      track('checkout_start', { itemCount, total: grandTotal, currency });
+      setTimeout(() => setCheckoutOpen(true), 200);
+    } else {
+      // Auth resolved but no user — show login modal (keep pending so after login it opens)
+      setCartOpen(false);
+      openAuthModal();
+    }
+  }, [loading, user]);
 
   const handleCheckout = () => {
-    if (!user) {
-      // Not logged in — close cart, open login, then re-open checkout after success
+    if (user) {
+      // Already logged in — open checkout immediately
+      track('checkout_start', { itemCount, total: grandTotal, currency });
       setCartOpen(false);
-      openAuthModal(() => {
-        track('checkout_start', { itemCount, total: grandTotal, currency });
-        setTimeout(() => setCheckoutOpen(true), 300);
-      });
+      setTimeout(() => setCheckoutOpen(true), 200);
       return;
     }
-    track('checkout_start', { itemCount, total: grandTotal, currency });
-    setCartOpen(false);
-    setTimeout(() => setCheckoutOpen(true), 200);
+    // Not logged in (or still loading) — mark pending
+    pendingCheckout.current = true;
+    if (!loading) {
+      // Auth done and definitely not logged in — show login now
+      setCartOpen(false);
+      openAuthModal();
+    }
+    // If still loading: effect will fire automatically when loading finishes
   };
 
   return (
@@ -117,7 +138,7 @@ export default function Cart({ content = {} }) {
             </div>
           )}
           <button className="c-ck" disabled={cart.length === 0} onClick={handleCheckout}>
-            Checkout →
+            {loading ? 'Please wait…' : 'Checkout →'}
           </button>
         </div>
       </div>

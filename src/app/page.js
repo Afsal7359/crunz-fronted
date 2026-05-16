@@ -19,7 +19,7 @@ import { useAuth } from '@/context/AuthContext';
 import BundleSection from '@/components/BundleSection';
 
 function HomeContent() {
-  const { user, authModalOpen, authOnSuccess, openAuthModal, closeAuthModal } = useAuth();
+  const { user, authModalOpen, openAuthModal, closeAuthModal } = useAuth();
   const [products, setProducts] = useState([]);
   const [content, setContent] = useState({});
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -57,7 +57,7 @@ function HomeContent() {
       <Cart content={content} />
       <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
       <CheckoutModal content={content} />
-      <AuthModal open={authModalOpen} onClose={closeAuthModal} onSuccess={authOnSuccess} />
+      <AuthModal open={authModalOpen} onClose={closeAuthModal} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
     </AnalyticsProvider>
   );

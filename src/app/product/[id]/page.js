@@ -121,11 +121,11 @@ function RelatedCard({ product, currency, onNavigate }) {
 /* ── Main product detail content ── */
 function ProductDetailContent({ products, content, product }) {
   const { currency, addToCart, setCartOpen } = useCart();
+  const { openAuthModal, closeAuthModal, authModalOpen } = useAuth();
   const { track } = useAnalytics();
   const router = useRouter();
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
   const price = currency === 'INR' ? product.priceINR : product.priceGBP;
@@ -157,7 +157,7 @@ function ProductDetailContent({ products, content, product }) {
 
   return (
     <>
-      <Navbar content={content} onOpenAuth={() => setAuthOpen(true)} onOpenProfile={() => setProfileOpen(true)} />
+      <Navbar content={content} onOpenAuth={() => openAuthModal()} onOpenProfile={() => setProfileOpen(true)} />
 
       <main style={{ minHeight: '80vh', background: '#fff' }}>
 
@@ -463,7 +463,7 @@ function ProductDetailContent({ products, content, product }) {
       <Footer content={content} />
       <Cart content={content} />
       <CheckoutModal content={content} />
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthModal open={authModalOpen} onClose={closeAuthModal} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
 
       <style>{`
