@@ -48,7 +48,7 @@ export default function Cart({ content = {} }) {
               const price = currency === 'INR' ? item.priceINR : item.priceGBP;
               return (
                 <div key={item._id} className="c-itm">
-                  <img className="c-itm-img" src={fixImageUrl(item.image) || '/images/spanish-tomato.jpg'} alt={item.name} />
+                  <img className="c-itm-img" src={fixImageUrl(item.image) || '/images/spanish-tomato.jpg'} alt={item.name} width="64" height="64" />
                   <div className="c-itm-info">
                     <div className="c-itm-name">{item.name}</div>
                     <div className="c-itm-sub">Banana Chips · {formatPrice(price, currency)}</div>

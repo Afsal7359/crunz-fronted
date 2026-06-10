@@ -56,7 +56,7 @@ export default function Spotlight({ products = [], onOpenModal }) {
             </button>
           </div>
           <div className="spot-img" style={{ background: '#fff' }}>
-            <img src={d.image || '/images/spanish-tomato.jpg'} alt={d.name} />
+            <img src={d.image || '/images/spanish-tomato.jpg'} alt={d.name} width="460" height="460" loading="lazy" />
           </div>
         </div>
       </div>

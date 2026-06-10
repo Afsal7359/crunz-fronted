@@ -46,6 +46,9 @@ function ProductChip({ product, selected, selectable, onClick }) {
         <img
           src={fixImageUrl(product.image) || '/images/spanish-tomato.jpg'}
           alt={product.name}
+          width="120"
+          height="120"
+          loading="lazy"
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
         {selectable && selected && (

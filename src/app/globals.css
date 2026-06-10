@@ -1,8 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
-body { font-family: 'Inter', sans-serif; background: #fff; color: #0a0a0a; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+body { font-family: var(--font-inter), Inter, system-ui, sans-serif; background: #fff; color: #0a0a0a; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
 
 /* APP LOADING SPLASH */
 .app-loading { position: fixed; inset: 0; z-index: 9999; background: #0a0a0a; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 36px; transition: opacity .45s ease; }

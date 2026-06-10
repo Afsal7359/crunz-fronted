@@ -253,6 +253,8 @@ function CartToast({ product, qty, currency, onViewCart, onClose }) {
             className="cart-toast-img"
             src={fixImageUrl(product.image) || '/images/spanish-tomato.jpg'}
             alt={product.name}
+            width="58"
+            height="58"
           />
           <div className="cart-toast-info">
             <div className="cart-toast-label">✓ Added to Cart</div>
