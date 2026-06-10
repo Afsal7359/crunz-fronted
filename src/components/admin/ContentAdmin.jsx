@@ -138,15 +138,63 @@ const VIDEO_SLOTS = [
   { urlKey: 'video_3_url', titleKey: 'video_3_title', label: 'Video 3' },
 ];
 
+const CLOUDINARY_CLOUD  = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+const hasCloudinary = !!(CLOUDINARY_CLOUD && CLOUDINARY_PRESET);
+
+function uploadToCloudinary(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', CLOUDINARY_PRESET);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/video/upload`);
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable && onProgress) onProgress(Math.round(e.loaded / e.total * 100));
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 400) {
+        try { reject(new Error(JSON.parse(xhr.responseText).error?.message || 'Cloudinary upload failed')); }
+        catch { reject(new Error('Cloudinary upload failed')); }
+      } else {
+        resolve(JSON.parse(xhr.responseText).secure_url);
+      }
+    };
+    xhr.onerror = () => reject(new Error('Network error — check your internet connection'));
+    xhr.send(fd);
+  });
+}
+
 function extractVideoFilename(url = '') {
-  // Matches /uploads/videos/<filename>
   const m = url.match(/\/uploads\/videos\/([^/?#]+)/);
   return m ? m[1] : null;
 }
 
+// Extract Cloudinary public_id from a secure_url
+// e.g. https://res.cloudinary.com/cloud/video/upload/v123/crunz-videos/file.mp4
+//   → crunz-videos/file
+function extractCloudinaryPublicId(url = '') {
+  const m = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[^.]+$/);
+  return m ? m[1] : null;
+}
+
 async function deleteVideoFile(url) {
+  if (!url || url.includes('youtube') || url.includes('youtu.be')) return;
+
+  if (url.includes('cloudinary.com')) {
+    const publicId = extractCloudinaryPublicId(url);
+    if (!publicId) return;
+    try {
+      await api.delete('/upload/cloudinary', { publicId });
+    } catch (e) {
+      console.warn('[VideoSlot] Cloudinary delete failed:', e.message);
+    }
+    return;
+  }
+
+  // Local backend file
   const filename = extractVideoFilename(url);
-  if (!filename) return; // YouTube URL or empty — nothing to delete
+  if (!filename) return;
   try {
     await api.delete(`/upload/video/${encodeURIComponent(filename)}`);
   } catch (e) {
@@ -159,27 +207,35 @@ function VideoSlot({ slot, content, setContent }) {
   const [progress, setProgress] = useState(0);
   const [err, setErr] = useState('');
   const url = content[slot.urlKey] || '';
-  const isLocal = url && !url.includes('youtube') && !url.includes('youtu.be');
+  const isUploaded = url && !url.includes('youtube') && !url.includes('youtu.be');
+  const isCloudinary = url.includes('cloudinary.com');
 
   const handleFile = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 25 * 1024 * 1024) { setErr('File exceeds 25 MB limit'); return; }
     setErr(''); setUploading(true); setProgress(0);
-    // Delete old local file before uploading new one
-    if (isLocal) await deleteVideoFile(url);
-    const fd = new FormData();
-    fd.append('video', file);
+
+    if (isUploaded) await deleteVideoFile(url);
+
     try {
-      const d = await api.upload('/upload/video', fd, pct => setProgress(pct));
-      setContent(c => ({ ...c, [slot.urlKey]: d.url }));
+      let videoUrl;
+      if (hasCloudinary) {
+        videoUrl = await uploadToCloudinary(file, setProgress);
+      } else {
+        if (file.size > 25 * 1024 * 1024) { setErr('File exceeds 25 MB — set up Cloudinary for larger files'); setUploading(false); return; }
+        const fd = new FormData();
+        fd.append('video', file);
+        const d = await api.upload('/upload/video', fd, pct => setProgress(pct));
+        videoUrl = d.url;
+      }
+      setContent(c => ({ ...c, [slot.urlKey]: videoUrl }));
     } catch (ex) { setErr(ex.message); }
     setUploading(false); setProgress(0);
     e.target.value = '';
   };
 
   const handleClear = async () => {
-    if (isLocal) await deleteVideoFile(url);
+    if (isUploaded) await deleteVideoFile(url);
     setContent(c => ({ ...c, [slot.urlKey]: '', [slot.titleKey]: '' }));
   };
 
@@ -193,7 +249,7 @@ function VideoSlot({ slot, content, setContent }) {
       {/* Current video preview */}
       {url && (
         <div style={{ marginBottom: 14 }}>
-          {isLocal ? (
+          {isUploaded ? (
             <video
               src={url} controls
               style={{ width: '100%', maxHeight: 200, borderRadius: 8, background: '#000', display: 'block' }}
@@ -209,7 +265,14 @@ function VideoSlot({ slot, content, setContent }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         {/* Upload */}
         <div>
-          <label className="fl">Upload Video (max 25 MB)</label>
+          <label className="fl">
+            Upload Video {hasCloudinary ? '(via Cloudinary · no size limit)' : '(max 25 MB)'}
+          </label>
+          {!hasCloudinary && (
+            <div style={{ fontSize: '.72rem', color: '#d97706', marginBottom: 6, padding: '5px 8px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6 }}>
+              ⚠ Cloudinary not configured — large files may fail. Add NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET to your environment.
+            </div>
+          )}
           <input
             type="file" accept="video/mp4,video/webm,video/quicktime,video/x-msvideo,.mp4,.webm,.mov,.avi,.mkv"
             className="fi" style={{ padding: '7px 10px' }}
@@ -221,8 +284,13 @@ function VideoSlot({ slot, content, setContent }) {
               <div style={{ height: 4, background: '#efefef', borderRadius: 4, overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${progress}%`, background: '#0a0a0a', borderRadius: 4, transition: 'width .2s' }} />
               </div>
-              <div style={{ fontSize: '.72rem', opacity: .5, marginTop: 4 }}>{progress}% uploaded…</div>
+              <div style={{ fontSize: '.72rem', opacity: .5, marginTop: 4 }}>
+                {hasCloudinary ? `Uploading to Cloudinary… ${progress}%` : `${progress}% uploaded…`}
+              </div>
             </div>
+          )}
+          {isCloudinary && !uploading && (
+            <div style={{ fontSize: '.72rem', color: '#16a34a', marginTop: 5 }}>☁ Stored on Cloudinary CDN</div>
           )}
           {err && <div style={{ fontSize: '.75rem', color: '#dc2626', marginTop: 6 }}>{err}</div>}
         </div>
@@ -232,7 +300,7 @@ function VideoSlot({ slot, content, setContent }) {
           <label className="fl">OR YouTube URL</label>
           <input
             className="fi"
-            value={isLocal ? '' : url}
+            value={isUploaded ? '' : url}
             onChange={e => setContent(c => ({ ...c, [slot.urlKey]: e.target.value }))}
             placeholder="https://www.youtube.com/watch?v=..."
             disabled={uploading}
@@ -260,7 +328,7 @@ function VideoManager({ content, setContent, onSave, saving, saved }) {
     <div className="admin-form-wrap" style={{ marginBottom: 20 }}>
       <div style={{ fontWeight: 800, fontSize: '1rem', letterSpacing: '-.4px', marginBottom: 4 }}>Our Videos Section</div>
       <div style={{ fontSize: '.78rem', opacity: .45, marginBottom: 18 }}>
-        Upload videos (MP4 · max 25 MB) or paste a YouTube URL for each slot. Up to 3 videos shown on the site.
+        Upload videos (MP4/WebM/MOV) via Cloudinary CDN or paste a YouTube URL. Up to 3 videos shown on the site.
       </div>
       {VIDEO_SLOTS.map(slot => (
         <VideoSlot key={slot.urlKey} slot={slot} content={content} setContent={setContent} />
