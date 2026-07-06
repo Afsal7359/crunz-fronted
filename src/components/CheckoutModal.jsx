@@ -152,10 +152,12 @@ export default function CheckoutModal({ content = {} }) {
 
   const validate = () => {
     if (!form.name.trim())     { setErr('Please enter your name'); return false; }
-    if (!form.email.trim())    { setErr('Please enter your email'); return false; }
     if (!form.phone.trim())    { setErr('Please enter your phone number'); return false; }
     if (!form.street.trim())   { setErr('Please enter your street address'); return false; }
     if (!form.postcode.trim()) { setErr('Please enter your postcode'); return false; }
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      setErr('Please enter a valid email address'); return false;
+    }
     setErr(''); return true;
   };
 
@@ -215,7 +217,10 @@ export default function CheckoutModal({ content = {} }) {
             <div className="success-box">
               <div className="success-ico">🎉</div>
               <div className="success-ttl">Payment Successful!</div>
-              <p className="success-sub">Your order is confirmed. Check your email for details.</p>
+              <p className="success-sub">
+                Your order is confirmed.
+                {(user?.email || form.email.trim()) && ' A confirmation has been sent to your email.'}
+              </p>
               <button className="sub-btn" style={{ marginTop: 24 }} onClick={close}>Continue Shopping</button>
             </div>
 
@@ -343,7 +348,7 @@ export default function CheckoutModal({ content = {} }) {
                   <input className="fi" placeholder="Your full name" value={form.name} onChange={set('name')} />
                 </div>
                 <div className="fg">
-                  <label className="fl">Email *</label>
+                  <label className="fl">Email <span style={{ opacity: .45, fontWeight: 500 }}>(optional — for order confirmation)</span></label>
                   <input className="fi" type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} />
                 </div>
               </div>
