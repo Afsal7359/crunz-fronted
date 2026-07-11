@@ -126,6 +126,9 @@ nav { position: sticky; top: 0; z-index: 900; background: #fff; border-bottom: 1
 @media (max-width: 600px) { .prod-img-wrap img { height: 150px; padding: 10px; } }
 .prod-card:hover .prod-img-wrap img { transform: scale(1.05); }
 .prod-badge { position: absolute; top: 10px; left: 10px; background: #0a0a0a; color: #fff; font-size: .58rem; font-weight: 700; letter-spacing: .8px; padding: 4px 8px; border-radius: 3px; }
+.prod-oos-badge { position: absolute; top: 10px; left: 10px; background: #dc2626; color: #fff; font-size: .58rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 4px 9px; border-radius: 3px; z-index: 2; }
+.prod-card-oos { opacity: .75; }
+.prod-card-oos:hover { transform: none !important; box-shadow: none !important; }
 .prod-body { padding: 0 18px; flex: 1; display: flex; flex-direction: column; }
 .prod-flavor { font-size: .66rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; opacity: .38; margin-bottom: 5px; }
 .prod-name { font-size: 1rem; font-weight: 800; letter-spacing: -.4px; color: #0a0a0a; margin-bottom: 7px; }

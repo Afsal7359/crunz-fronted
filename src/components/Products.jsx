@@ -40,19 +40,22 @@ export default function Products({ products = [], onOpenModal }) {
         {products.map(product => (
           <div
             key={product._id}
-            className="prod-card"
+            className={`prod-card${product.inStock === false ? ' prod-card-oos' : ''}`}
             onClick={() => goToDetail(product)}
           >
             <div className="prod-img-wrap" style={{ background: '#fafafa' }}>
-              {product.badge && <div className="prod-badge">{product.badge}</div>}
-              <img src={fixImageUrl(product.image) || '/images/spanish-tomato.jpg'} alt={product.name} loading="lazy" width="220" height="220" />
+              {product.badge && product.inStock !== false && <div className="prod-badge">{product.badge}</div>}
+              {product.inStock === false && (
+                <div className="prod-oos-badge">Out of Stock</div>
+              )}
+              <img src={fixImageUrl(product.image) || '/images/spanish-tomato.jpg'} alt={product.name} loading="lazy" width="220" height="220" style={product.inStock === false ? { opacity: 0.45, filter: 'grayscale(40%)' } : {}} />
             </div>
             <div className="prod-body">
               <div className="prod-flavor">{product.flavor}</div>
               <div className="prod-name">{product.name}</div>
               <p className="prod-desc">{product.description}</p>
               <div className="prod-foot">
-                <div className="prod-price">
+                <div className="prod-price" style={product.inStock === false ? { opacity: .4 } : {}}>
                   {currency === 'INR'
                     ? formatPrice(product.priceINR, 'INR')
                     : formatPrice(product.priceGBP, 'GBP')}
@@ -61,8 +64,9 @@ export default function Products({ products = [], onOpenModal }) {
                 <button
                   className="add-btn"
                   onClick={e => { e.stopPropagation(); goToDetail(product); }}
+                  style={product.inStock === false ? { background: '#aaa', cursor: 'default' } : {}}
                 >
-                  View
+                  {product.inStock === false ? 'Notify Me' : 'View'}
                 </button>
               </div>
             </div>

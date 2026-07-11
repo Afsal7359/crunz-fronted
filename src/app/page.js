@@ -55,7 +55,7 @@ function HomeContent() {
       <Footer content={content} />
       <WaFloat wa={content.whatsapp} />
       <Cart content={content} />
-      <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
+      <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} wa={content.whatsapp} />
       <CheckoutModal content={content} />
       <AuthModal open={authModalOpen} onClose={closeAuthModal} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
